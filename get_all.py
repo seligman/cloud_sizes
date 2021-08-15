@@ -41,5 +41,9 @@ def main():
         json.dump(all_info, f, separators=(',', ':'), sort_keys=True)
         f.write("\n")
 
+    with open("names.json", "wt", newline="") as f:
+        json.dump(pretties, f, separators=(',', ':'), sort_keys=True)
+
+
 if __name__ == "__main__":
     main()
