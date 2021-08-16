@@ -5,6 +5,7 @@ from importlib.util import spec_from_file_location, module_from_spec
 import json
 from datetime import datetime
 import gzip
+import io
 
 def main():
     # A summary of this run
@@ -27,8 +28,8 @@ def main():
             pretties[name] = pretty
             # Add a summary to our summary dictionary
             all_info[name] = [v4.size, v6.size]
-            # Dump out the data
-            with gzip.open(f"data_{name}.json.gz", "wt") as f:
+            # Dump out the data, set the mtime so the compressed file is deterministic
+            with io.TextIOWrapper(gzip.GzipFile(f"data_{name}.json.gz", "w", 9, mtime=0), newline="") as f:
                 json.dump({
                     'date': run_at,
                     'v4': sorted([str(x) for x in v4.iter_cidrs()]),
