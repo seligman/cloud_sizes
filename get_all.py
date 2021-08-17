@@ -42,6 +42,12 @@ def main():
         json.dump(all_info, f, separators=(',', ':'), sort_keys=True)
         f.write("\n")
 
+    # And a simple file with the latest summary line
+    with open("summary.json", "wt", newline="") as f:
+        json.dump(all_info, f, separators=(',', ':'), sort_keys=True)
+        f.write("\n")
+
+    # And dump out the pretty version of each system
     with open("names.json", "wt", newline="") as f:
         json.dump(pretties, f, separators=(',', ':'), sort_keys=True)
 
