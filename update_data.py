@@ -47,7 +47,7 @@ def main():
         os.mkdir("images")
 
     data = []
-    with open("summary.jsonl", "rt") as f:
+    with open(os.path.join("data", "summary.jsonl"), "rt") as f:
         for row in f:
             data.append(row)
             if len(data) > 365:
@@ -62,8 +62,8 @@ def main():
         providers.remove("_")
     
     # Load the pretty names, if the file exists
-    if os.path.isfile("names.json"):
-        with open("names.json") as f:
+    if os.path.isfile(os.path.join("data", "names.json")):
+        with open(os.path.join("data", "names.json")) as f:
             pretties = json.load(f)
     else:
         pretties = {}

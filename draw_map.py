@@ -66,7 +66,7 @@ def main():
 
     # Load some interesting IPv4 ranges
     for cur in ['aws', 'azure', 'google']:
-        with gzip.open(f"data_{cur}.json.gz") as f:
+        with gzip.open(os.path.join("data", f"data_{cur}.json.gz")) as f:
             data = json.load(f)
             ranges[cur] = IPSet([IPNetwork(x) for x in data['v4']])
 

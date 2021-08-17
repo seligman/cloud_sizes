@@ -29,7 +29,7 @@ def main():
             # Add a summary to our summary dictionary
             all_info[name] = [v4.size, v6.size]
             # Dump out the data, set the mtime so the compressed file is deterministic
-            with io.TextIOWrapper(gzip.GzipFile(f"data_{name}.json.gz", "w", 9, mtime=0), newline="") as f:
+            with io.TextIOWrapper(gzip.GzipFile(os.path.join("data", f"data_{name}.json.gz"), "w", 9, mtime=0), newline="") as f:
                 json.dump({
                     'date': run_at,
                     'v4': sorted([str(x) for x in v4.iter_cidrs()]),
@@ -38,17 +38,17 @@ def main():
             print(f"got {v4.size} IPs", flush=True)
 
     # Add the new summary line
-    with open("summary.jsonl", "at", newline="") as f:
+    with open(os.path.join("data", "summary.jsonl"), "at", newline="") as f:
         json.dump(all_info, f, separators=(',', ':'), sort_keys=True)
         f.write("\n")
 
     # And a simple file with the latest summary line
-    with open("summary.json", "wt", newline="") as f:
+    with open(os.path.join("data", "summary.json"), "wt", newline="") as f:
         json.dump(all_info, f, separators=(',', ':'), sort_keys=True)
         f.write("\n")
 
     # And dump out the pretty version of each system
-    with open("names.json", "wt", newline="") as f:
+    with open(os.path.join("data", "names.json"), "wt", newline="") as f:
         json.dump(pretties, f, separators=(',', ':'), sort_keys=True)
 
 
