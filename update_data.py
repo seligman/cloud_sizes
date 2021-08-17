@@ -85,7 +85,7 @@ def main():
 
         for cur in providers:
             log_step(f"Chart for {cur}")
-            md += f"![{cur}](images/history_{cur}.png)\n\n"
+            md += f"![{cur}](images/history_{cur}.png)<br>\n"
             plt.clf()
             plt.figure(figsize=(7, 2))
             history = [x.get(cur, [0])[0] for x in data]
@@ -95,6 +95,9 @@ def main():
             plt.ylabel(pretties.get(cur, cur))
             plt.tight_layout()
             plt.savefig(os.path.join("images", f"history_{cur}.png"), dpi=100)
+
+    log_step("Draw a map of the big IP ranges")
+    subprocess.check_call(["python3", "draw_map.py", os.path.join("images", "map.png")])
 
     # Update the README
     log_step("Create README from template")
