@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import matplotlib.pyplot as plt
 import json
@@ -20,20 +20,35 @@ def run(cmd):
     subprocess.check_call(cmd)
 
 
+def fast_parse_date(text):
+    return datetime(
+        year=int(text[0:4]),
+        month=int(text[5:7]),
+        day=int(text[8:10]),
+        hour=int(text[11:13] or 0),
+        minute=int(text[14:16] or 0),
+        second=int(text[17:19] or 0)
+    )
+
+
 def main():
     show_help = False
     chart_only = False
+    draw_hilbert = True
 
     for arg in sys.argv[1:]:
         if arg.lower() == "charts":
             chart_only = True
+        elif arg.lower() == "nohilbert":
+            draw_hilbert = False
         else:
             show_help = True
             break
     
     if show_help:
         print("Usage:")
-        print("charts - Only draw charts, don't udpate date or check in changes")
+        print("charts    - Only draw charts, don't update date or check in changes")
+        print("nohilbert - Don't update the Hilbert Curve map")
         exit(1)
 
     log_step("Starting work")
@@ -73,6 +88,23 @@ def main():
     # change the sort order
     providers = sorted(providers, key=lambda x: pretties.get(x, x).lower())
 
+    # Run through and find the y limits of all the providers
+    # so we can use one y limit for all charts
+    min_y = None
+    max_y = None
+    for cur in providers:
+        cur_min_y = min([x.get(cur, [0])[0] for x in data])
+        cur_max_y = max([x.get(cur, [0])[0] for x in data])
+        if min_y is None:
+            min_y, max_y = cur_min_y, cur_max_y
+        else:
+            min_y = min(min_y, cur_min_y)
+            max_y = max(max_y, cur_max_y)
+    # Add a buffer
+    buffer = (max_y - min_y) * 0.05
+    max_y = max_y + buffer
+    min_y = max(min_y - buffer, 0)
+
     md = ""
     with plt.style.context("dark_background"):
         log_step("Main chart")
@@ -80,29 +112,37 @@ def main():
         plt.bar(range(len(providers)), [data[-1].get(x, [0])[0] for x in providers])
         plt.xticks(range(len(providers)), [pretties.get(x, x) for x in providers])
         plt.yticks(plt.yticks()[0], [f"{int(x/1000000):d}m" for x in plt.yticks()[0]])
+        plt.ylim((min_y, max_y))
         plt.tight_layout()
         plt.savefig(os.path.join("images", "main.png"), dpi=100)
 
+        # Pull out the dates, use a number so matplotlib can align things
+        epoch = datetime(2020, 1, 1)
+        xaxis = [(fast_parse_date(x['_']) - epoch).total_seconds() / 86400.0 for x in data]
+        
         for cur in providers:
             log_step(f"Chart for {cur}")
             md += f"![{cur}](images/history_{cur}.png)<br>\n"
             plt.clf()
             plt.figure(figsize=(7, 2))
             history = [x.get(cur, [0])[0] for x in data]
-            plt.plot(range(len(history)), history)
-            plt.xticks([])
-            plt.yticks([])
+            plt.plot(xaxis, history, linewidth=3.0)
+            plt.ylim((min_y, max_y))
+            plt.xlim((min(xaxis), max(xaxis)))
+            plt.xticks(plt.xticks()[0], [f"{(epoch + timedelta(days=x)).strftime('%m-%d')}" for x in plt.xticks()[0]])
+            plt.yticks(plt.yticks()[0], [f"{int(x/1000000):d}m" for x in plt.yticks()[0]])
             plt.ylabel(pretties.get(cur, cur))
             plt.tight_layout()
             plt.savefig(os.path.join("images", f"history_{cur}.png"), dpi=100)
 
-    log_step("Draw a map of the big IP ranges")
-    subprocess.check_call(["python3", "draw_map.py", os.path.join("images", "map.png")])
+    if draw_hilbert:
+        log_step("Draw a map of the big IP ranges")
+        subprocess.check_call(["python3", "draw_map.py", os.path.join("images", "map.png")])
 
     # Update the README
     log_step("Create README from template")
     with open("README.template.md", "rt") as f_src:
-        with open("README.md", "wt") as f_dest:
+        with open("README.md", "wt", newline="") as f_dest:
             data = f_src.read()
             data = data.replace("[[history]]", md)
 
