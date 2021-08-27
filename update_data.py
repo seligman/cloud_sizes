@@ -83,10 +83,14 @@ def main():
     else:
         pretties = {}
 
+    # Get the list of enabled providers
+    enabled = {x for x, y in pretties.items() if y[1]}
     # Get the providers in a simple list, and make sure to sort
     # them by the pretty name, since it could, but probably won't,
     # change the sort order
-    providers = sorted(providers, key=lambda x: pretties.get(x, x).lower())
+    providers = sorted(providers, key=lambda x: pretties.get(x, [x])[0].lower())
+    # Limit the providers to only the enabled ones
+    providers = [x for x in providers if x in enabled]
 
     # Run through and find the y limits of all the providers
     # so we can use one y limit for all charts
@@ -110,7 +114,7 @@ def main():
         log_step("Main chart")
         plt.figure(figsize=(7, 5))
         plt.bar(range(len(providers)), [data[-1].get(x, [0])[0] for x in providers])
-        plt.xticks(range(len(providers)), [pretties.get(x, x) for x in providers])
+        plt.xticks(range(len(providers)), [pretties.get(x, [x])[0] for x in providers])
         plt.yticks(plt.yticks()[0], [f"{int(x/1000000):d}m" for x in plt.yticks()[0]])
         plt.ylim((min_y, max_y))
         plt.tight_layout()
@@ -131,7 +135,7 @@ def main():
             plt.xlim((min(xaxis), max(xaxis)))
             plt.xticks(plt.xticks()[0], [f"{(epoch + timedelta(days=x)).strftime('%m-%d')}" for x in plt.xticks()[0]])
             plt.yticks(plt.yticks()[0], [f"{int(x/1000000):d}m" for x in plt.yticks()[0]])
-            plt.ylabel(pretties.get(cur, cur))
+            plt.ylabel(pretties.get(cur, [cur])[0])
             plt.tight_layout()
             plt.savefig(os.path.join("images", f"history_{cur}.png"), dpi=100)
 

@@ -4,8 +4,8 @@ from requests import get
 from netaddr import IPSet, IPNetwork
 
 def get_and_parse():
-    # Get the current IP Ranges from a CSV, how quaint
-    ip_ranges = get("https://digitalocean.com/geo/google.csv").text
+    # Get the current IP Ranges from a CSV
+    ip_ranges = get("https://mask-api.icloud.com/egress-ip-ranges.csv").text
 
     v4 = []
     v6 = []
@@ -20,7 +20,7 @@ def get_and_parse():
     v4 = IPSet(v4)
     v6 = IPSet(v6)
 
-    return "digitalocean", "DigitalOcean", v4, v6, True
+    return "icloudprov", "iCloud Private Relay", v4, v6, False
 
 if __name__ == "__main__":
     print("This module is not meant to be run directly")
