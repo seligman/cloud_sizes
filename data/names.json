@@ -1,1 +1,1 @@
-{"aws":["AWS",true],"azure":["Azure",true],"cloudflare":["Cloudflare",true],"digitalocean":["DigitalOcean",true],"google":["Google Cloud",true],"oracle":["Oracle Cloud",true]}
+{"aws":["AWS",true],"azure":["Azure",true],"cloudflare":["Cloudflare",true],"digitalocean":["DigitalOcean",true],"google":["Google Cloud",true],"icloudprov":["iCloud Private Relay",false],"oracle":["Oracle Cloud",true]}
