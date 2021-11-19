@@ -123,18 +123,41 @@ def main():
         # Pull out the dates, use a number so matplotlib can align things
         epoch = datetime(2020, 1, 1)
         xaxis = [(fast_parse_date(x['_']) - epoch).total_seconds() / 86400.0 for x in data]
-        
+
+        min_y, max_y = 0, 0
+        percent_change = {}
+        # Calculate the percent change for all of the providers
+        for cur in providers:
+            history = [x.get(cur, [0])[0] for x in data]
+            temp = []
+            last_value = history[0]
+            for cur_value in history:
+                temp.append(((cur_value - last_value) / last_value) * 100)
+                last_value = cur_value
+            min_y = min(min_y, min(temp))
+            max_y = max(max_y, max(temp))
+            percent_change[cur] = temp
+
+        if (max_y - min_y) > 0.05:
+            buffer = (max_y - min_y) * 0.05
+        else:
+            buffer = 0.025
+
+        min_y -= buffer
+        max_y += buffer
+
         for cur in providers:
             log_step(f"Chart for {cur}")
             md += f"![{cur}](images/history_{cur}.png)<br>\n"
             plt.clf()
             plt.figure(figsize=(7, 2))
-            history = [x.get(cur, [0])[0] for x in data]
+            history = percent_change[cur]
+
             plt.plot(xaxis, history, linewidth=3.0)
             plt.ylim((min_y, max_y))
             plt.xlim((min(xaxis), max(xaxis)))
             plt.xticks(plt.xticks()[0], [f"{(epoch + timedelta(days=x)).strftime('%m-%d')}" for x in plt.xticks()[0]])
-            plt.yticks(plt.yticks()[0], [f"{int(x/1000000):d}m" for x in plt.yticks()[0]])
+            plt.yticks(plt.yticks()[0], [f"{int(x):d}%" for x in plt.yticks()[0]])
             plt.ylabel(pretties.get(cur, [cur])[0])
             plt.tight_layout()
             plt.savefig(os.path.join("images", f"history_{cur}.png"), dpi=100)
