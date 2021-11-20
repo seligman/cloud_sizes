@@ -6,7 +6,7 @@ Currently, the cloud providers have this many IPv4 addresses:
 
 ![Compared](images/main.png)
 
-Over time, each item's size
+Over time, each item's day to day change in percent:
 
 ![aws](images/history_aws.png)<br>
 ![azure](images/history_azure.png)<br>
