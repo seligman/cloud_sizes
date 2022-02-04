@@ -132,7 +132,10 @@ def main():
             temp = []
             last_value = history[0]
             for cur_value in history:
-                temp.append(((cur_value - last_value) / last_value) * 100)
+                if last_value > 0:
+                    temp.append(((cur_value - last_value) / last_value) * 100)
+                else:
+                    temp.append(0)
                 last_value = cur_value
             min_y = min(min_y, min(temp))
             max_y = max(max_y, max(temp))
