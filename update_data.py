@@ -97,25 +97,32 @@ def main():
     min_y = None
     max_y = None
     for cur in providers:
-        cur_min_y = min([x.get(cur, [0])[0] for x in data])
-        cur_max_y = max([x.get(cur, [0])[0] for x in data])
-        if min_y is None:
-            min_y, max_y = cur_min_y, cur_max_y
-        else:
-            min_y = min(min_y, cur_min_y)
-            max_y = max(max_y, cur_max_y)
+        temp = [x[cur][0] for x in data if cur in x]
+        if len(temp):
+            cur_min_y = min(temp)
+            cur_max_y = max(temp)
+            if min_y is None:
+                min_y, max_y = cur_min_y, cur_max_y
+            else:
+                min_y = min(min_y, cur_min_y)
+                max_y = max(max_y, cur_max_y)
+
     # Add a buffer
-    buffer = (max_y - min_y) * 0.05
-    max_y = max_y + buffer
-    min_y = max(min_y - buffer, 0)
+    max_y = max_y * 1.10
+    min_y = max(min_y * 0.90, 1)
+
+    # Order elements on the chart by size
+    pretty_order = providers[:]
+    pretty_order.sort(key=lambda x:data[-1].get(x, [0])[0], reverse=True)
 
     md = ""
     with plt.style.context("dark_background"):
         log_step("Main chart")
         plt.figure(figsize=(7, 5))
-        plt.bar(range(len(providers)), [data[-1].get(x, [0])[0] for x in providers])
-        plt.xticks(range(len(providers)), [pretties.get(x, [x])[0] for x in providers])
+        plt.bar(range(len(providers)), [data[-1].get(x, [0])[0] for x in pretty_order])
+        plt.xticks(range(len(providers)), [pretties.get(x, [x])[0] for x in pretty_order])
         plt.yticks(plt.yticks()[0], [f"{int(x/1000000):d}m" for x in plt.yticks()[0]])
+        plt.yscale('log')
         plt.ylim((min_y, max_y))
         plt.tight_layout()
         plt.savefig(os.path.join("images", "main.png"), dpi=100)
@@ -128,7 +135,16 @@ def main():
         percent_change = {}
         # Calculate the percent change for all of the providers
         for cur in providers:
-            history = [x.get(cur, [0])[0] for x in data]
+            history = [x.get(cur, [None])[0] for x in data]
+   
+            # Fill in any gaps to prevent drops to zero when no data is found
+            last_value = 0
+            for i, x in enumerate(history):
+                if x is None:
+                    history[i] = last_value
+                else:
+                    last_value = x
+
             temp = []
             last_value = history[0]
             for cur_value in history:

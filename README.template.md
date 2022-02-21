@@ -1,8 +1,8 @@
 # Track IPs for Cloud Providers
 
-A repo to track the relative size, in terms of IP addresses, for different cloud providers.
+A repo to track the relative size, in terms of IP addresses, for different services using relatively large IPv4 pools, such as cloud providers.
 
-Currently, the cloud providers have this many IPv4 addresses:
+Currently, they providers have this many IPv4 addresses, shown with a logarithmic scale:
 
 ![Compared](images/main.png)
 
