@@ -20,7 +20,7 @@ def get_and_parse():
     v4 = IPSet(v4)
     v6 = IPSet(v6)
 
-    return "icloudprov", "iCloud", v4, v6, False
+    return "icloudprov", "iCloud", v4, v6, True
 
 if __name__ == "__main__":
     print("This module is not meant to be run directly")

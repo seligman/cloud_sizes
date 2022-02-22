@@ -118,7 +118,7 @@ def main():
     md = ""
     with plt.style.context("dark_background"):
         log_step("Main chart")
-        plt.figure(figsize=(7, 5))
+        plt.figure(figsize=(8, 5))
         plt.bar(range(len(providers)), [data[-1].get(x, [0])[0] for x in pretty_order])
         plt.xticks(range(len(providers)), [pretties.get(x, [x])[0] for x in pretty_order])
         plt.yticks(plt.yticks()[0], [f"{int(x/1000000):d}m" for x in plt.yticks()[0]])
@@ -169,7 +169,7 @@ def main():
             log_step(f"Chart for {cur}")
             md += f"![{cur}](images/history_{cur}.png)<br>\n"
             plt.clf()
-            plt.figure(figsize=(7, 2))
+            plt.figure(figsize=(8, 2))
             history = percent_change[cur]
 
             plt.plot(xaxis, history, linewidth=3.0)
