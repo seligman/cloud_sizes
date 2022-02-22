@@ -1,1 +1,1 @@
-{"aws":["AWS",true],"azure":["Azure",true],"cloudflare":["Cloudflare",true],"digitalocean":["DigitalOcean",true],"facebook":["Facebook",true],"google":["GCP",true],"icloudprov":["iCloud",true],"oracle":["Oracle",true]}
+{"aws":["AWS",true],"azure":["Azure",true],"cloudflare":["Cloudflare",true],"digitalocean":["DigitalOcean",true],"facebook":["Facebook",false],"google":["GCP",true],"icloudprov":["iCloud",false],"oracle":["Oracle",true]}

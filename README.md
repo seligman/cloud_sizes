@@ -12,9 +12,7 @@ Over time, each item's day to day change in percent:
 ![azure](images/history_azure.png)<br>
 ![cloudflare](images/history_cloudflare.png)<br>
 ![digitalocean](images/history_digitalocean.png)<br>
-![facebook](images/history_facebook.png)<br>
 ![google](images/history_google.png)<br>
-![icloudprov](images/history_icloudprov.png)<br>
 ![oracle](images/history_oracle.png)<br>
 
 
