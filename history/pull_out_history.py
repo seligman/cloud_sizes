@@ -7,11 +7,7 @@ from datetime import datetime
 import os
 import gzip
 
-"""
-YEAR=2021 ; find ${YEAR} -type f | sort | tar --owner=0 --group=0 -T - -cvzf ${YEAR}.tar.gz
-"""
-
-def process_history(fn, provider):
+def process_history(years, fn, provider):
     seen = set()
 
     cmd = "git rev-list --all --objects -- ../data/" + fn
@@ -34,6 +30,7 @@ def process_history(fn, provider):
                     break
                 else:
                     dn = time.strftime("%Y")
+                    years.add(dn)
                     if not os.path.isdir(dn):
                         os.mkdir(dn)
                     dn = os.path.join(dn, provider)
@@ -44,10 +41,18 @@ def process_history(fn, provider):
                     print(", created file for " + time.strftime("%Y-%m-%d %H:%M:%S"), flush=True)
 
 def main():
+    years = set()
     for cur in sorted(os.listdir(os.path.join("..", "data"))):
         if cur.startswith("data_") and cur.endswith(".json.gz"):
             provider = cur[5:-8]
-            process_history(cur, provider)
+            process_history(years, cur, provider)
+    
+    for year in sorted(years)[:-1]:
+        print(f"Compressing {year}")
+        cmd = f"find {year} -type f | sort | tar --owner=0 --group=0 -T - -cvzf {year}.tar.gz ; rm -rf {year}"
+        print("$ " + cmd)
+        subprocess.check_call(cmd, shell=True)
+
 
 if __name__ == "__main__":
     main()
