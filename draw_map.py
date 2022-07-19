@@ -138,12 +138,12 @@ def add_labels(im, colors):
     labels = [["AWS", "aws"], ["Azure", "azure"], ["Google Cloud", "google"], ["(Reserved/Private IPs)", "private"]]
     max_h = 0
     for label, color in labels:
-        _w, h = fnt.getsize(label)
+        _x, _y, _w, h = fnt.getbbox(label)
         max_h = max(max_h, int(h))
 
     y = 50*4
     for label, color in labels:
-        _w, h = fnt.getsize(label)
+        _x, _y, _w, h = fnt.getbbox(label)
         dr.rectangle((560*4, y, 600*4, y + max_h), (150, 150, 150))
         dr.rectangle((562*4, y+2*4, 598*4, y + max_h - 2*4), colors[color])
         dr.text((620*4, y), label, (255, 255, 255), fnt)

@@ -107,6 +107,9 @@ def main():
                 min_y = min(min_y, cur_min_y)
                 max_y = max(max_y, cur_max_y)
 
+    if min_y is None:
+        min_y, max_y = 0, 100
+
     # Add a buffer
     max_y = max_y * 1.10
     min_y = max(min_y * 0.90, 1)
