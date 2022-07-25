@@ -156,9 +156,11 @@ def main():
                 else:
                     temp.append(0)
                 last_value = cur_value
-            min_y = min(min_y, min(temp))
-            max_y = max(max_y, max(temp))
             percent_change[cur] = temp
+            temp = [x for x in temp if abs(x) <= 5]
+            if len(temp) > 0:
+                min_y = min(min_y, min(temp))
+                max_y = max(max_y, max(temp))
 
         if (max_y - min_y) > 0.05:
             buffer = (max_y - min_y) * 0.05
