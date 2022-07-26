@@ -15,6 +15,7 @@ Over time, each item's day to day change in percent:
 ![facebook](images/history_facebook.png)<br>
 ![google](images/history_google.png)<br>
 ![icloudprov](images/history_icloudprov.png)<br>
+![linode](images/history_linode.png)<br>
 ![oracle](images/history_oracle.png)<br>
 
 
