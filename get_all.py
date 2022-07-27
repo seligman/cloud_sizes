@@ -18,9 +18,9 @@ def main():
     pretties = {}
 
     # Loop for each file in the helpers dir, and let it doe the work for its provider
-    for cur in os.listdir("helpers"):
+    for cur in sorted(os.listdir("helpers")):
         if cur.endswith(".py"):
-            print(f"Working on {cur}, ", end="", flush=True)
+            print(f"Working on {cur:<16} ", end="", flush=True)
             try:
                 spec = spec_from_file_location("ips", os.path.join("helpers", cur))
                 ips = module_from_spec(spec)
@@ -33,9 +33,11 @@ def main():
                 # Read in the old data
                 old_data = "--"
                 dest_name = os.path.join("data", f"data_{name}.json.gz")
+                old_v4_size = 0
                 if os.path.isfile(dest_name):
                     with gzip.open(dest_name) as f:
                         old_data = json.load(f)
+                        old_v4_size = old_data.get('v4_size')
                         old_data["date"] = "--"
                         old_data = json.dumps(old_data, separators=(',', ':'), sort_keys=True)
                 
@@ -44,6 +46,8 @@ def main():
                     'date': "--",
                     'v4': sorted([str(x) for x in v4.iter_cidrs()]),
                     'v6': sorted([str(x) for x in v6.iter_cidrs()]),
+                    'v4_size': v4.size,
+                    'v6_size': v6.size,
                 }
                 new_data = json.dumps(new_data, separators=(',', ':'), sort_keys=True)
 
@@ -54,10 +58,20 @@ def main():
                             'date': run_at,
                             'v4': sorted([str(x) for x in v4.iter_cidrs()]),
                             'v6': sorted([str(x) for x in v6.iter_cidrs()]),
+                            'v4_size': v4.size,
+                            'v6_size': v6.size,
                         }, f, separators=(',', ':'), sort_keys=True)
-                    print(f"got {v4.size} IPs", flush=True)
+                    new_v4_size = v4.size
+                    if new_v4_size != old_v4_size and old_v4_size > 0 and new_v4_size > 0:
+                        if new_v4_size > old_v4_size:
+                            change = f"+{new_v4_size - old_v4_size}"
+                        else:
+                            change = f"-{old_v4_size - new_v4_size}"
+                        print(f"got {v4.size:>8} IPs, change by {change:>6}", flush=True)
+                    else:
+                        print(f"got {v4.size:>8} IPs", flush=True)
                 else:
-                    print(f"got {v4.size} IPs, no change", flush=True)
+                    print(f"got {v4.size:>8} IPs, no change", flush=True)
             except Exception as e:
                 print("ERROR: " + str(e))
 

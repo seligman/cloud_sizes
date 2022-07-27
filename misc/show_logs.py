@@ -10,40 +10,72 @@ LOG_GROUP_NAME = "/aws/lambda/trackCloudSizes"
 
 _client = boto3.Session(profile_name=AWS_PROFILE).client('logs', region_name=AWS_REGION)
 
-def recent():
+def show_quick():
+    recent(quick_only=True)
+
+def recent(quick_only=False):
     args = {
         'logGroupName': LOG_GROUP_NAME,
         'descending': True,
         'orderBy': 'LastEventTime',
     }
-    oldest = datetime.utcnow() - timedelta(days=2)
+    oldest = datetime.utcnow() - timedelta(days=7)
+    epoch = datetime(1970, 1, 1)
+    last_msg = ""
+    msgs = []
+    at_end = False
     for cur in _client.get_paginator('describe_log_streams').paginate(**args):
         for stream in cur['logStreams']:
-            at = datetime.fromtimestamp(stream['lastEventTimestamp'] / 1000)
+            at = epoch + timedelta(seconds=stream['lastEventTimestamp'] / 1000)
             if at < oldest:
-                return
+                at_end = True
+                break
+            msg = f"Working, gathered {len(msgs)} log streams..."
+            print("\r" + " " * len(last_msg) + "\r" + msg, end="", flush=True)
+            last_msg = msg
+            msgs.append([at])
             args = {
                 'logGroupName': LOG_GROUP_NAME,
                 'logStreamName': stream["logStreamName"],
                 'startFromHead': True,
             }
-            last_token, info = None, ""
-            print("-" * 50)
+            info = ""
             while True:
                 resp = _client.get_log_events(**args)
                 for event in resp['events']:
                     if len(info) == 0:
-                        info = datetime.fromtimestamp(event['timestamp']/1000).strftime("%d %H:%M:%S") + ": " + event['message']
+                        info = (epoch + timedelta(seconds=event['timestamp']/1000)).strftime("%d %H:%M:%S") + ": " + event['message']
                     else:
                         info += event['message']
                     if info.endswith("\n"):
-                        print(info.strip("\n"))
+                        show_line = True
+                        if quick_only:
+                            show_line = ": Working on " in info
+                        if show_line:
+                            msgs[-1].append(info.strip("\n"))
                         info = ""
                 if resp['nextForwardToken'] == args.get('nextToken'):
                     break
                 args['nextToken'] = resp['nextForwardToken']
             if len(info):
-                print(info.strip("\n"))
+                show_line = True
+                if quick_only:
+                    show_line = ": Working on " in info
+                if show_line:
+                    msgs[-1].append(info.strip("\n"))
+        if at_end:
+            break
+
+    print("\r" + " " * len(last_msg) + "\r", end="", flush=True)
+
+    msgs.sort(key=lambda x:x[0])
+
+    for i, cur in enumerate(msgs):
+        if i > 0:
+            print("-" * 80)
+        for row in cur[1:]:
+            print(row)
+
 
 def show_groups():
     for cur in _client.get_paginator('describe_log_groups').paginate():
@@ -52,8 +84,9 @@ def show_groups():
 
 if __name__ == "__main__":
     cmds = {
-        "show": ("Show recent log events", show_groups),
-        "recent": ("Show all CloudWatch log groups", recent),
+        "show": ("Show all CloudWatch log groups", show_groups),
+        "recent": ("Show recent log events", recent),
+        "quick": ("Show just the Working on lines", show_quick),
     }
     if len(sys.argv) == 2 and sys.argv[1] in cmds:
         cmds[sys.argv[1]][1]()
