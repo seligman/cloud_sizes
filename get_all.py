@@ -37,7 +37,7 @@ def main():
                 if os.path.isfile(dest_name):
                     with gzip.open(dest_name) as f:
                         old_data = json.load(f)
-                        old_v4_size = old_data.get('v4_size')
+                        old_v4_size = old_data.get('v4_size', 0)
                         old_data["date"] = "--"
                         old_data = json.dumps(old_data, separators=(',', ':'), sort_keys=True)
                 
