@@ -3,6 +3,8 @@
 from datetime import datetime, timedelta
 import boto3
 import sys
+import os
+import re
 
 AWS_PROFILE = "pers"
 AWS_REGION = "us-west-2"
@@ -14,6 +16,7 @@ def show_quick():
     recent(quick_only=True)
 
 def recent(quick_only=False):
+    expected = set(x.lower() for x in os.listdir(os.path.join("..", "helpers")))
     args = {
         'logGroupName': LOG_GROUP_NAME,
         'descending': True,
@@ -40,6 +43,7 @@ def recent(quick_only=False):
                 'startFromHead': True,
             }
             info = ""
+            detected = set()
             while True:
                 resp = _client.get_log_events(**args)
                 for event in resp['events']:
@@ -51,6 +55,9 @@ def recent(quick_only=False):
                         show_line = True
                         if quick_only:
                             show_line = ": Working on " in info
+                        m = re.search("Working on (?P<name>[a-zA-Z0-9._-]+\\.py)", info)
+                        if m is not None:
+                            detected.add(m.group("name").lower())
                         if show_line:
                             msgs[-1].append(info.strip("\n"))
                         info = ""
@@ -58,11 +65,12 @@ def recent(quick_only=False):
                     break
                 args['nextToken'] = resp['nextForwardToken']
             if len(info):
-                show_line = True
-                if quick_only:
-                    show_line = ": Working on " in info
-                if show_line:
-                    msgs[-1].append(info.strip("\n"))
+                msgs[-1].append(info.strip("\n"))
+            if quick_only:
+                if len(expected - detected) == 0:
+                    msgs[-1].append("  All helpers detected")
+                else:
+                    msgs[-1].append("  WARNING: Helpers " + ", ".join(expected - detected) + " not detected!")
         if at_end:
             break
 
