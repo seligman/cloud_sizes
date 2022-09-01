@@ -75,18 +75,18 @@ def main():
                     print(f"got {v4.size:>8} IPs, no change", flush=True, end="")
 
                 # Also log out the raw data
-                old_data = b'--'
-                dest_name = os.path.join("data", f"raw_{name}.json.gz")
+                old_data = '--'
+                dest_name = os.path.join("data", f"raw_{name}.json")
                 if os.path.isfile(dest_name):
                     try:
-                        with gzip.open(dest_name, "rb") as f:
+                        with open(dest_name, "rt") as f:
                             old_data = f.read()
                     except:
-                        old_data = b'--'
+                        old_data = '--'
                 
-                new_data = json.dumps(raw_data, separators=(',', ':')).encode("utf-8")                    
+                new_data = json.dumps(raw_data, separators=(',', ':'))
                 if old_data != new_data:
-                    with gzip.open(dest_name, "wb") as f:
+                    with open(dest_name, "wt") as f:
                         f.write(new_data)
                         print(f", wrote out {len(new_data):7d} bytes of raw data", flush=True)
                 else:
