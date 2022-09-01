@@ -11,7 +11,7 @@ def get_and_parse():
     v4 = IPSet([IPNetwork(x["ip_prefix"]) for x in ip_ranges["prefixes"]])
     v6 = IPSet([IPNetwork(x["ipv6_prefix"]) for x in ip_ranges["ipv6_prefixes"]])
 
-    return "aws", "AWS", v4, v6, True
+    return "aws", "AWS", v4, v6, True, ip_ranges
 
 if __name__ == "__main__":
     print("This module is not meant to be run directly")

@@ -13,7 +13,7 @@ def get_and_parse():
     v4 = IPSet(IPNetwork(y['ipv4Prefix']) for y in data['prefixes'] if 'ipv4Prefix' in y)
     v6 = IPSet(IPNetwork(y['ipv6Prefix']) for y in data['prefixes'] if 'ipv6Prefix' in y)
 
-    return "google", "GCP", v4, v6, True
+    return "google", "GCP", v4, v6, True, data
 
 if __name__ == "__main__":
     print("This module is not meant to be run directly")

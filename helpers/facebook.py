@@ -4,7 +4,6 @@ import socket
 from netaddr import IPSet, IPNetwork
 
 def whois():
-
     try:
         # whois -h whois.radb.net -- '-i origin AS32934'
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -42,8 +41,11 @@ def get_and_parse():
 
     v4 = IPSet(v4)
     v6 = IPSet(v6)
+    data = {}
+    data["ip_v4"] = [str(x) for x in v4.iter_cidrs()]
+    data["ip_v6"] = [str(x) for x in v6.iter_cidrs()]
 
-    return "facebook", "Facebook", v4, v6, True
+    return "facebook", "Facebook", v4, v6, True, data
 
 if __name__ == "__main__":
     print("This module is not meant to be run directly")

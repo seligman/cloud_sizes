@@ -25,7 +25,7 @@ def main():
                 spec = spec_from_file_location("ips", os.path.join("helpers", cur))
                 ips = module_from_spec(spec)
                 spec.loader.exec_module(ips)
-                name, pretty, v4, v6, show = ips.get_and_parse()
+                name, pretty, v4, v6, show, raw_data = ips.get_and_parse()
                 pretties[name] = [pretty, show]
                 # Add a summary to our summary dictionary
                 all_info[name] = [v4.size, v6.size]
@@ -33,6 +33,7 @@ def main():
                 # Read in the old data
                 old_data = "--"
                 dest_name = os.path.join("data", f"data_{name}.json.gz")
+
                 old_v4_size = 0
                 if os.path.isfile(dest_name):
                     with gzip.open(dest_name) as f:
@@ -67,11 +68,29 @@ def main():
                             change = f"+{new_v4_size - old_v4_size}"
                         else:
                             change = f"-{old_v4_size - new_v4_size}"
-                        print(f"got {v4.size:>8} IPs, change by {change:>6}", flush=True)
+                        print(f"got {v4.size:>8} IPs, change by {change:>6}", flush=True, end="")
                     else:
-                        print(f"got {v4.size:>8} IPs", flush=True)
+                        print(f"got {v4.size:>8} IPs", flush=True, end="")
                 else:
-                    print(f"got {v4.size:>8} IPs, no change", flush=True)
+                    print(f"got {v4.size:>8} IPs, no change", flush=True, end="")
+
+                # Also log out the raw data
+                old_data = b'--'
+                dest_name = os.path.join("data", f"raw_{name}.json.gz")
+                if os.path.isfile(dest_name):
+                    try:
+                        with gzip.open(dest_name, "rb") as f:
+                            old_data = f.read()
+                    except:
+                        old_data = b'--'
+                
+                new_data = json.dumps(raw_data, separators=(',', ':')).encode("utf-8")                    
+                if old_data != new_data:
+                    with gzip.open(dest_name, "wb") as f:
+                        f.write(new_data)
+                        print(f", wrote out {len(new_data):7d} bytes of raw data", flush=True)
+                else:
+                    print(f", raw data didn't change.", flush=True)
             except Exception as e:
                 print("ERROR: " + str(e))
 

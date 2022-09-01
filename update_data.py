@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import subprocess
 from datetime import datetime, timedelta
-import os
-import matplotlib.pyplot as plt
 import json
+import matplotlib.pyplot as plt
+import os
+import subprocess
 import sys
 
 

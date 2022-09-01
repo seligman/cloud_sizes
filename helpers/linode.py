@@ -20,8 +20,11 @@ def get_and_parse():
     
     v4 = IPSet(v4)
     v6 = IPSet(v6)
+    data = {}
+    data["ip_v4"] = [str(x) for x in v4.iter_cidrs()]
+    data["ip_v6"] = [str(x) for x in v6.iter_cidrs()]
 
-    return "linode", "Linode", v4, v6, True
+    return "linode", "Linode", v4, v6, True, data
 
 if __name__ == "__main__":
     print("This module is not meant to be run directly")

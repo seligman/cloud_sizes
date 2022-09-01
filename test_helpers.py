@@ -2,6 +2,8 @@
 
 from importlib.util import spec_from_file_location, module_from_spec
 from netaddr import IPSet, IPNetwork
+import gzip
+import json
 import os
 import sys
 
@@ -69,8 +71,9 @@ def main():
                 spec = spec_from_file_location("ips", os.path.join("helpers", cur))
                 ips = module_from_spec(spec)
                 spec.loader.exec_module(ips)
-                name, pretty, v4, v6, show = ips.get_and_parse()
-                print(f"IPv4: {approximate_count(v4):<16} ({v4.size / public_ips * 100:6.4f}%)/ IPv6: {approximate_count(v6):<16}", flush=True)
+                name, pretty, v4, v6, show, raw_data = ips.get_and_parse()
+                raw_data = gzip.compress(json.dumps(raw_data, separators=(',', ':')).encode("utf-8"))
+                print(f"IPv4: {approximate_count(v4):<16} ({v4.size / public_ips * 100:6.4f}%)/ IPv6: {approximate_count(v6):<17} / Raw: {len(raw_data):7d}", flush=True)
                 for other, other_v4 in known.items():
                     overlap = other_v4 & v4
                     if overlap.size > 0:
