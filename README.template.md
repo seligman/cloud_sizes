@@ -10,6 +10,6 @@ Over time, each item's day to day change in percent:
 
 [[history]]
 
-An IP map, in the style of [XKCD's map of the Internet](https://xkcd.com/195/), of the big providers:
+An IP map of the big providers, in the style of [XKCD's map of the Internet](https://xkcd.com/195/):
 
 ![map](images/map.png)

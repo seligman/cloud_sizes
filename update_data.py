@@ -7,18 +7,15 @@ import os
 import subprocess
 import sys
 
-
 _started = datetime.utcnow()
 def log_step(value):
     # Simple helper to show how long everything takes
     print(f"{(datetime.utcnow() - _started).total_seconds():8.4f}: {value}", flush=True)
 
-
 def run(cmd):
     # Run commands
     log_step("$ " + " ".join([f'"{x}"' if " " in x else x for x in cmd]))
     subprocess.check_call(cmd)
-
 
 def fast_parse_date(text):
     return datetime(
@@ -30,25 +27,39 @@ def fast_parse_date(text):
         second=int(text[17:19] or 0)
     )
 
-
 def main():
     show_help = False
     chart_only = False
     draw_hilbert = True
+    run_git_commands = True
+    force_draw = set()
 
-    for arg in sys.argv[1:]:
-        if arg.lower() == "charts":
+    args = sys.argv[1:]
+    while len(args) > 0:
+        if args[0].lower() == "charts":
+            args.pop(0)
             chart_only = True
-        elif arg.lower() == "nohilbert":
+            run_git_commands = False
+        elif args[0].lower() in {"no_hilbert", "nohilbert"}:
+            args.pop(0)
             draw_hilbert = False
+            run_git_commands = False
+        elif args[0].lower() in {"skip_git", "skipgit"}:
+            args.pop(0)
+            run_git_commands = False
+        elif args[0].lower() == "force" and len(args) > 1:
+            args.pop(0)
+            force_draw.add(args.pop(0))
         else:
             show_help = True
             break
     
     if show_help:
         print("Usage:")
-        print("charts    - Only draw charts, don't update date or check in changes")
-        print("nohilbert - Don't update the Hilbert Curve map")
+        print("  charts     - Only draw charts, don't update date or check in changes")
+        print("  no_hilbert - Don't update the Hilbert Curve map")
+        print("  skip_git   - Skip running all git commands")
+        print("  force <x>  - Force helper <x> to be included, even if previously disabled")
         exit(1)
 
     log_step("Starting work")
@@ -84,7 +95,7 @@ def main():
         pretties = {}
 
     # Get the list of enabled providers
-    enabled = {x for x, y in pretties.items() if y[1]}
+    enabled = {x for x, y in pretties.items() if y[1] or x in force_draw}
     # Get the providers in a simple list, and make sure to sort
     # them by the pretty name, since it could, but probably won't,
     # change the sort order
@@ -110,9 +121,9 @@ def main():
     if min_y is None:
         min_y, max_y = 0, 100
 
-    # Add a buffer
-    max_y = max_y * 1.10
-    min_y = max(min_y * 0.90, 1)
+    # Limit to a nice edge on a log scale
+    min_y = 1
+    max_y = int('1' + '0' * len(str(int(max_y))))
 
     # Order elements on the chart by size
     pretty_order = providers[:]
@@ -122,8 +133,10 @@ def main():
     with plt.style.context("dark_background"):
         log_step("Main chart")
         plt.figure(figsize=(8, 5))
-        plt.bar(range(len(providers)), [data[-1].get(x, [0])[0] for x in pretty_order])
-        plt.xticks(range(len(providers)), [pretties.get(x, [x])[0] for x in pretty_order])
+        plt.grid(True, which='major', axis='y', zorder=1, color=(.5, .5, .5))
+        plt.grid(True, which='minor', axis='y', zorder=1, color=(.5, .5, .5))
+        plt.bar(range(len(providers)), [data[-1].get(x, [0])[0] for x in pretty_order], zorder=2)
+        plt.xticks(range(len(providers)), [pretties.get(x, [x])[0] for x in pretty_order], fontsize=8)
         plt.yticks(plt.yticks()[0], [f"{int(x/1000000):d}m" for x in plt.yticks()[0]])
         plt.yscale('log')
         plt.ylim((min_y, max_y))
@@ -196,10 +209,9 @@ def main():
         with open("README.md", "wt", newline="") as f_dest:
             data = f_src.read()
             data = data.replace("[[history]]", md)
-
             f_dest.write(data)
 
-    if not chart_only:
+    if run_git_commands:
         # Check in any changes
         run(["git", "add", "."])
         log_step("Look for changes")
@@ -213,7 +225,6 @@ def main():
             log_step("No changes")
 
     log_step("All done")
-
 
 if __name__ == "__main__":
     main()

@@ -7,7 +7,6 @@ import json
 import sys
 import os
 
-
 def hilbert_xy(side_size, offset):
     x, y = 0, 0
     t = offset
@@ -20,19 +19,15 @@ def hilbert_xy(side_size, offset):
         y += s * ry
         t = int(t / 4)
         s *= 2
-
     return x, y
-
 
 def hilbert_rotate(n, rx, ry, x, y):
     if ry == 0:
         if rx == 1:
             x = n-1 - x
             y = n-1 - y
-            
         x, y = y, x
     return x, y
-
 
 def main():
     colors = {
@@ -126,24 +121,30 @@ def main():
     im = add_labels(im, colors)
     im.save(sys.argv[1])
 
-
 def add_labels(im, colors):
+    if len(sys.argv) != 2:
+        print("Need to specify output filename")
+        exit(1)
+
     # Add some labels to the chart
-    final = Image.new('RGB', (850*4, 542*4))
+    final = Image.new('RGBA', (850*4, 542*4), (255, 255, 255, 0))
     dr = ImageDraw.Draw(final)
     fnt = ImageFont.truetype(os.path.join("images", "SourceSansPro-Bold.ttf"), 15 * 4)
-    dr.rectangle((0, 0, final.width, final.height), (30, 30, 30))
     dr.rectangle((10*4, 10*4, 532*4, 532*4), (150, 150, 150))
 
     labels = [["AWS", "aws"], ["Azure", "azure"], ["Google Cloud", "google"], ["(Reserved/Private IPs)", "private"]]
     max_h = 0
+    max_w = 0
     for label, color in labels:
-        _x, _y, _w, h = fnt.getbbox(label)
+        _, _, w, h = fnt.getbbox(label)
         max_h = max(max_h, int(h))
+        max_w = max(max_w, int(w))
+
+    dr.rectangle(((560-10)*4, (50-10)*4, (620+10)*4+max_w, 50*4+int(max_h*1.5*len(labels))), (32, 32, 32))
 
     y = 50*4
     for label, color in labels:
-        _x, _y, _w, h = fnt.getbbox(label)
+        _, _, _, h = fnt.getbbox(label)
         dr.rectangle((560*4, y, 600*4, y + max_h), (150, 150, 150))
         dr.rectangle((562*4, y+2*4, 598*4, y + max_h - 2*4), colors[color])
         dr.text((620*4, y), label, (255, 255, 255), fnt)
@@ -151,7 +152,6 @@ def add_labels(im, colors):
 
     final.paste(im, (15*4, 15*4))
     return final.resize((final.width // 4, final.height // 4))
-
 
 if __name__ == "__main__":
     main()
