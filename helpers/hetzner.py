@@ -30,12 +30,14 @@ def get_and_parse():
     # Get the current IP Ranges from a series of whois queries
     v4 = []
     v6 = []
+    data = ""
 
     for asn in ["AS24940", "AS213230", "AS212317"]:
-        data = whois(asn)
+        results = whois(asn)
+        data += results
 
         # Parse it out
-        for line in data.split("\n"):
+        for line in results.split("\n"):
             if line.startswith("route:"):
                 v4.append(IPNetwork(line[6:].strip()))
             elif line.startswith("route6:"):
@@ -43,11 +45,8 @@ def get_and_parse():
 
     v4 = IPSet(v4)
     v6 = IPSet(v6)
-    data = {}
-    data["ip_v4"] = [str(x) for x in v4.iter_cidrs()]
-    data["ip_v6"] = [str(x) for x in v6.iter_cidrs()]
 
-    return "hetzner", "Hetzner", v4, v6, True, data
+    return "hetzner", "Hetzner", v4, v6, True, data, "txt"
 
 if __name__ == "__main__":
     print("This module is not meant to be run directly")

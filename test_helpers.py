@@ -71,8 +71,10 @@ def main():
                 spec = spec_from_file_location("ips", os.path.join("helpers", cur))
                 ips = module_from_spec(spec)
                 spec.loader.exec_module(ips)
-                name, pretty, v4, v6, show, raw_data = ips.get_and_parse()
-                raw_data = gzip.compress(json.dumps(raw_data, separators=(',', ':')).encode("utf-8"))
+                name, pretty, v4, v6, show, raw_data, raw_format = ips.get_and_parse()
+                if raw_format == "json":
+                    raw_data = json.dumps(raw_data, separators=(',', ':'))
+                raw_data = gzip.compress(raw_data.encode("utf-8"))
                 print(f"IPv4: {approximate_count(v4):<16} ({v4.size / public_ips * 100:6.4f}%)/ IPv6: {approximate_count(v6):<17} / Raw: {len(raw_data):7d}", flush=True)
                 for other, other_v4 in known.items():
                     overlap = other_v4 & v4

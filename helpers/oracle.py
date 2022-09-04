@@ -15,11 +15,7 @@ def get_and_parse():
     v4 = IPSet([x for x in oracle.iter_cidrs() if x.network.version == 4])
     v6 = IPSet([x for x in oracle.iter_cidrs() if x.network.version == 6])
 
-    data = {}
-    data["ip_v4"] = [str(x) for x in v4.iter_cidrs()]
-    data["ip_v6"] = [str(x) for x in v6.iter_cidrs()]
-
-    return "oracle", "Oracle", v4, v6, True, data
+    return "oracle", "Oracle", v4, v6, True, ip_ranges, "json"
 
 if __name__ == "__main__":
     print("This module is not meant to be run directly")
