@@ -14,11 +14,12 @@ Over time, each item's day to day change in percent:
 ![digitalocean](images/history_digitalocean.png)<br>
 ![facebook](images/history_facebook.png)<br>
 ![google](images/history_google.png)<br>
+![hetzner](images/history_hetzner.png)<br>
 ![icloudprov](images/history_icloudprov.png)<br>
 ![linode](images/history_linode.png)<br>
 ![oracle](images/history_oracle.png)<br>
 
 
-An IP map, in the style of [XKCD's map of the Internet](https://xkcd.com/195/), of the big providers:
+An IP map of the big providers, in the style of [XKCD's map of the Internet](https://xkcd.com/195/):
 
 ![map](images/map.png)
