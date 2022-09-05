@@ -136,7 +136,7 @@ def main():
         plt.grid(True, which='major', axis='y', zorder=1, color=(.5, .5, .5))
         plt.grid(True, which='minor', axis='y', zorder=1, color=(.5, .5, .5))
         plt.bar(range(len(providers)), [data[-1].get(x, [0])[0] for x in pretty_order], zorder=2)
-        plt.xticks(range(len(providers)), [pretties.get(x, [x])[0] for x in pretty_order], fontsize=8)
+        plt.xticks(range(len(providers)), [("\n" if i % 2 == 1 else "") + pretties.get(x, [x])[0] for i, x in enumerate(pretty_order)])
         plt.yticks(plt.yticks()[0], [f"{int(x/1000000):d}m" for x in plt.yticks()[0]])
         plt.yscale('log')
         plt.ylim((min_y, max_y))

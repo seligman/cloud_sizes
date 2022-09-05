@@ -83,13 +83,14 @@ def main():
                             old_data = f.read()
                     except:
                         old_data = b'--'
+                new_data = raw_data
                 if raw_format == "json":
-                    new_data = json.dumps(raw_data, separators=(',', ':'))
+                    new_data = json.dumps(new_data, separators=(',', ':'))
                 new_data = new_data.encode("utf-8")
                 if old_data != new_data:
                     with gzip.open(dest_name, "wb") as f:
                         f.write(new_data)
-                        print(f", wrote out {len(new_data):7d} bytes of raw data", flush=True)
+                        print(f", wrote out {len(new_data):9d} bytes of raw data", flush=True)
                 else:
                     print(f", raw data didn't change.", flush=True)
             except Exception as e:
