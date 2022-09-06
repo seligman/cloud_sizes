@@ -10,6 +10,22 @@ import subprocess
 def process_raw_history():
     seen = set()
 
+    # Some of the early raw data dumps aren't really raw data, ignore the problematic cases
+    to_ignore = {
+        "cd39953c5a2ba2123ace2655c92427a6a2966754",
+        "39d0d309bae76cdc0fcc5df2d79571dd27dd2db2",
+        "91d8246bcd6cdeb9e2bb8dab228e61302fd24358",
+        "4cae717fba4ddfa9f32aad18f528b699b4708078",
+        "3ee2a4dafa3d0f6d0e8865678e37d6d2159f409d",
+        "9595c2f6c92d9d65e54a83b855d3a6926899455d",
+        "ba6d04eda5bca0d85be22ba5f7034c1dc93e9066",
+        "d33db441d2292071e213145be685dbe68fec18a1",
+        "a2ff3ee0c30520775e2cb280470b382ab1b99fc9",
+        "e513433caf81c4ead1d46307d40e49f85693ddf7",
+        "3a74ce99af393b7a9ab2f60959ea380afd17836a",
+        "c96dacfdc4f91856edc2f76387898e80e1fbf191",
+    }
+
     epoch = datetime(1970, 1, 1)
     log = subprocess.check_output(["git", "log", "--format=format:%H %ct"]).decode("utf-8")
     for row in log.split("\n"):
@@ -23,26 +39,27 @@ def process_raw_history():
                 info, file = file.split("\t")
                 info = info.split(" ")
                 if info[4] in {"A", "C", "M", "R"}:
-                    if file.startswith("data/raw_") and file.endswith(".json.gz"):
-                        provider = file[9:-8]
+                    if file.startswith("data/raw_") and (file.endswith(".json.gz") or file.endswith(".csv.gz") or file.endswith(".txt.gz")):
+                        provider = file.split("/")[-1].split(".")[0][4:]
                         dn = os.path.join(str(at.year), "raw", provider)
                         if not os.path.isdir(dn):
                             os.makedirs(dn)
-                        fn = os.path.join(dn, at.strftime("%Y-%m-%d") + ".json")
-                        print(f"Raw {provider}:{info[3]}, ", end="", flush=True)
-                        if not os.path.isfile(fn):
-                            data = subprocess.check_output(["git", "cat-file", "-p", info[3]])
-                            data = gzip.decompress(data)
-                            hash = sha256(data).hexdigest()
-                            if hash not in seen:
-                                seen.add(hash)
-                                with open(fn, "wb") as f:
-                                    f.write(data)
-                                print(f"wrote data for {at.strftime('%Y-%m-%d')}", flush=True)
+                        fn = os.path.join(dn, at.strftime("%Y-%m-%d") + "." + file.split("/")[-1].split(".")[1])
+                        if info[3] not in to_ignore:
+                            print(f"Raw {provider:<12}:{info[3]}, ", end="", flush=True)
+                            if not os.path.isfile(fn):
+                                data = subprocess.check_output(["git", "cat-file", "-p", info[3]])
+                                data = gzip.decompress(data)
+                                hash = sha256(data).hexdigest()
+                                if hash not in seen:
+                                    seen.add(hash)
+                                    with open(fn, "wb") as f:
+                                        f.write(data)
+                                    print(f"wrote for {at.strftime('%Y-%m-%d')}, {len(data):8d} bytes of {file.split('/')[-1].split('.')[1]:<4}", flush=True)
+                                else:
+                                    print("data seen.", flush=True)
                             else:
-                                print("data seen.", flush=True)
-                        else:
-                            print("file exists.", flush=True)
+                                print("file exists.", flush=True)
 
 def process_history(years, fn, provider):
     seen = set()
@@ -52,7 +69,7 @@ def process_history(years, fn, provider):
     for row in history.split("\n"):
         row = row.strip().split(' ')
         if len(row) == 2 and row[1] == "data/" + fn:
-            print("Working on " + provider + ":" + row[0], end="", flush=True)
+            print(f"Working on {provider:<12}:{row[0]}", end="", flush=True)
             cmd = "git cat-file -p " + row[0]
             data = subprocess.check_output(cmd.split(' '))
             data = gzip.decompress(data)
