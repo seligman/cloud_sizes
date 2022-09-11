@@ -9,23 +9,9 @@ import sys
 
 def approximate_count(val):
     val = val.size
-    thousands = [
-        ('undecillion', 10 ** 36),
-        ('decillion', 10 ** 33),
-        ('nonillion', 10 ** 30),
-        ('octillion', 10 ** 27),
-        ('septillion', 10 ** 24),
-        ('sextillion', 10 ** 21),
-        ('quintillion', 10 ** 18),
-        ('quadrillion', 10 ** 15),
-        ('trillion', 10 ** 12),
-        ('billion', 10 ** 9),
-        ('million', 10 ** 6),
-        ('thousand', 10 ** 3),
-    ]
-    for name, scale in thousands:
-        if val >= scale * 0.9:
-            return f"{val / scale:6.2f} {name}"
+    for scale in range(36, 0, -3):
+        if val >= (10 ** scale) * 0.9:
+            return f"{val / (10 ** scale):6.2f}e{scale}"
     return f"{val:3d}"
 
 def get_main_ranges():
@@ -75,7 +61,7 @@ def main():
                 if raw_format == "json":
                     raw_data = json.dumps(raw_data, separators=(',', ':'))
                 raw_data = gzip.compress(raw_data.encode("utf-8"))
-                print(f"IPv4: {approximate_count(v4):<16} ({v4.size / public_ips * 100:6.4f}%)/ IPv6: {approximate_count(v6):<17} / Raw: {len(raw_data):7d}", flush=True)
+                print(f"IPv4: {approximate_count(v4):<9} ({v4.size / public_ips * 100:6.4f}%) / IPv6: {approximate_count(v6):<9} / Raw: {len(raw_data):7d}", flush=True)
                 for other, other_v4 in known.items():
                     overlap = other_v4 & v4
                     if overlap.size > 0:
