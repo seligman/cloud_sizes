@@ -18,6 +18,7 @@ Over time, each item's day to day change in percent:
 ![icloudprov](images/history_icloudprov.png)<br>
 ![linode](images/history_linode.png)<br>
 ![oracle](images/history_oracle.png)<br>
+![vultr](images/history_vultr.png)<br>
 
 
 An IP map of the big providers, in the style of [XKCD's map of the Internet](https://xkcd.com/195/):
