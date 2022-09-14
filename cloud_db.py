@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 
+# Create a single database of all of the cloud providers, and organize
+# the data in this database to make lookups quick, and possible to
+# accomplish in a language and library independent fashion.
+#
+# For a stand alone version of this tool's lookup functionality, see
+#   https://github.com/seligman/seligman.github.io/blob/master/cloud-ips/lookup_ip_address.py
+# And for a online version of the lookup tool, please see
+#   https://seligman.github.io/cloud-ips/
+
 from collections import deque
 from datetime import datetime
 from netaddr import IPNetwork
