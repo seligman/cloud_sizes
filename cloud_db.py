@@ -18,7 +18,7 @@ import os
 import socket
 import struct
 
-BASE_DIR = "."
+BASE_DIR = os.path.split(__file__)[0]
 COOKIE = b'Cloud IPs Database\n\x00\x00'
 
 class Level:
@@ -89,35 +89,43 @@ def enum_pages(targets):
             todo.appendleft(page.zero)
             todo.appendleft(page.one)
 
-def add_aws(targets):
+def add_aws(targets, sources, short_name, long_name):
     # Add all AWS ranges to our current working set
+    sources[short_name] = long_name
     with gzip.open(os.path.join(BASE_DIR, "data", "raw_aws.json.gz")) as f:
         data = json.load(f)
 
     for cur in data["prefixes"] + data["ipv6_prefixes"]:
         prefix = cur.get("ip_prefix", cur.get("ipv6_prefix"))
-        add_data("aws", targets, prefix, cur["service"], cur["region"])
+        add_data(short_name, targets, prefix, cur["service"], cur["region"])
 
-def add_google(targets):
+def add_google(targets, sources, short_name, long_name):
     # Add all Google ranges to our current working set
+    sources[short_name] = long_name
     with gzip.open(os.path.join(BASE_DIR, "data", "raw_google.json.gz")) as f:
         data = json.load(f)
 
     for cur in data['prefixes']:
         prefix = cur.get("ipv4Prefix", cur.get("ipv6Prefix"))
-        add_data("google", targets, prefix, cur["service"], cur["scope"])
+        add_data(short_name, targets, prefix, cur["service"], cur["scope"])
 
-def add_azure(targets):
+def add_azure(targets, sources, short_name, long_name):
     # Add all Azure ranges to our current working set
+    sources[short_name] = long_name
     with gzip.open(os.path.join(BASE_DIR, "data", "raw_azure.json.gz")) as f:
         data = json.load(f)
 
     for group in data["values"]:
         for prefix in group['properties']['addressPrefixes']:
-            add_data("azure", targets, prefix, group["properties"].get("systemService", ""), group["properties"].get("region", ""))
+            add_data(
+                short_name, targets, prefix, 
+                group["properties"].get("systemService", ""), 
+                group["properties"].get("region", ""),
+            )
 
-def add_private(targets):
+def add_private(targets, sources, short_name, long_name):
     # Add all private IPs from a hardcoded list
+    sources[short_name] = long_name
     ranges = [
         ("0.0.0.0/8", "RFC 1700 broadcast addresses"),
         ("10.0.0.0/8", "RFC 1918 Private address space"),
@@ -140,7 +148,7 @@ def add_private(targets):
         ("::1/128", "Loopback addresses"),
     ]
     for prefix, desc in ranges:
-        add_data("private", targets, prefix, desc, "")
+        add_data(short_name, targets, prefix, desc, "")
 
 def add_other(targets, source):
     # Add IPs from a pre-parsed list of data
@@ -154,22 +162,47 @@ def create_db(target_file):
     # The main page includes sub pages for IPv4 and IPv6
     targets = Level(both=None, zero=Level(), one=Level(), offset=0)
 
-    add_aws(targets)
-    add_google(targets)
-    add_azure(targets)
-    add_private(targets)
-    others = [
-        "cloudflare", 
-        "digitalocean", 
-        "facebook", 
-        "hetzner", 
-        "icloudprov", 
-        "linode", 
-        "oracle", 
-        "vultr", 
-    ]
-    for other in others:
-        add_other(targets, other)
+    # This sources dict will end up in the database
+    sources = {
+        "cloudflare": "Cloudflare", 
+        "digitalocean": "DigitalOcean", 
+        "facebook": "Facebook", 
+        "hetzner": "Hetzner", 
+        "icloudprov": "iCloud", 
+        "linode": "Linode", 
+        "oracle": "Oracle", 
+        "vultr": "Vultr", 
+    }
+    for source in sources:
+        add_other(targets, source)
+    # Each of these helpers will add the description to the sources dictionary
+    add_aws(targets, sources, "aws", "AWS")
+    add_google(targets, sources, "google", "Google")
+    add_azure(targets, sources, "azure", "Azure")
+    add_private(targets, sources, "private", "Private IP")
+
+    # Helper to encode a value to a byte string
+    def encode_data(value):
+        ret = b''
+        if isinstance(value, dict):
+            if len(value) >= 63: raise Exception()
+            ret += struct.pack('!B', (len(value) << 2) | 1)
+            for k, v in value.items():
+                ret += encode_data(k)
+                ret += encode_data(v)
+        elif isinstance(value, list):
+            if len(value) >= 63: raise Exception()
+            ret += struct.pack('!B', (len(value) << 2) | 2)
+            for v in value:
+                ret += encode_data(v)
+        else:
+            value = value.encode("utf-8")
+            if len(value) >= 63:
+                ret += struct.pack('!BH', (63 << 2) | 3, len(value))
+            else:
+                ret += struct.pack('!B', (len(value) << 2) | 3)
+            ret += value
+        return ret
 
     # Figure out all of the page offsets
     valid_pages = {}
@@ -179,15 +212,21 @@ def create_db(target_file):
             page.offset = offset
             offset += 8
         else:
-            key = b'\x01'.join(b'\x00'.join(x.encode("utf-8") for x in item) for item in page.both)
+            key = encode_data(page.both)
             page.both = key
             valid_pages[key] = 0
+
+    # Add one final page with some information
+    info_page = encode_data({
+        "sources": sources,
+        "built": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+    })
+    valid_pages[info_page] = 0
 
     # Store the offsets for the data pages
     for key in valid_pages:
         valid_pages[key] = offset
-        # Two extra bytes for the length header
-        offset += len(key) + 2
+        offset += len(key)
 
     field_size = 1
     offset *= 2
@@ -198,9 +237,7 @@ def create_db(target_file):
     # Write out all of the data
     with open(target_file, "wb") as f:
         header = COOKIE
-        now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S").encode("utf-8")
-        header += struct.pack("!HHH", 1, field_size, len(now))
-        header += now
+        header += struct.pack("!HHQ", 2, field_size, valid_pages[info_page])
         header += b'\x00' * (128 - len(header))
         f.write(header)
 
@@ -225,20 +262,21 @@ def create_db(target_file):
             if offset != target_offset:
                 raise Exception("Incorrect offset for page!")
             # Data pages are two bytes for the length, followed by the data
-            f.write(struct.pack("!H", len(key)) + key)
-            offset += len(key) + 2
+            f.write(key)
+            offset += len(key)
 
 def lookup_ip(db_file, ip):
     # Lookup an IP
+
     # First off, see if it's IPv6
     ipv6 = ":" in ip
     # Decode the IP to a byte string, add a bit to the front to pick the right page
     ip = (b'\xff' if ipv6 else b'\x00') + socket.inet_pton(socket.AF_INET6 if ipv6 else socket.AF_INET, ip)
 
     with open(db_file, "rb") as f:
-        f.seek(len(COOKIE))
-        # Get the size of a field
-        _, field_size, _ = struct.unpack("!HHH", f.read(6))
+        f.seek(21)
+        # Get the size of a field, and the location of the info dictionary
+        _, field_size, info_loc = struct.unpack("!HHQ", f.read(12))
 
         # For each bit in the IP, starting at byte #7, lookup which page to use
         bit = 6
@@ -253,23 +291,56 @@ def lookup_ip(db_file, ip):
 
         # All done, so go ahead and read the data size
         f.seek(offset // 2)
-        str_len = struct.unpack("!H", f.read(2))[0]
-        # And read all of the data
-        temp = f.read(str_len)
+        def decode(f, offset):
+            # Helper to decode a value
+            f.seek(offset)
+            val = struct.unpack("!B", f.read(1))[0]
+            offset += 1
+            if (val & 3) == 1:
+                # A dictionary of 63 items or less
+                val >>= 2
+                ret = {}
+                for _ in range(val):
+                    k, offset = decode(f, offset)
+                    v, offset = decode(f, offset)
+                    ret[k] = v
+                return ret, offset
+            elif (val & 3) == 2:
+                # A list of 63 items or less
+                val >>= 2
+                ret = []
+                for _ in range(val):
+                    v, offset = decode(f, offset)
+                    ret.append(v)
+                return ret, offset
+            elif (val & 3) == 3:
+                # A string
+                val >>= 2
+                if val == 63:
+                    # If it has 63 bytes or more of data, the length is stored in another field
+                    val = struct.unpack("!H", f.read(2))[0]
+                    offset += 2
+                v = f.read(val)
+                offset += val
+                return v.decode("utf-8"), offset
+            else:
+                raise Exception()
+
+        info_dict, _ = decode(f, info_loc)
+
+        # Load the information to return
+        temp, _ = decode(f, offset // 2)
         ret = []
         # Decode the data into a simple array of dicts to return
-        for item in temp.split(b"\x01"):
-            if len(item) > 0:
-                item = item.split(b'\x00')
-                item = [x.decode("utf-8") for x in item]
-                item_dict = {"source": item[0]}
-                if len(item[1]) > 0:
-                    item_dict['service'] = item[1]
-                if len(item[2]) > 0:
-                    item_dict['region'] = item[2]
-                if len(item[3]) > 0:
-                    item_dict['prefix'] = item[3]
-                ret.append(item_dict)
+        for item in temp:
+            item_dict = {"source": info_dict["sources"].get(item[0], item[0])}
+            if len(item[1]) > 0:
+                item_dict['service'] = item[1]
+            if len(item[2]) > 0:
+                item_dict['region'] = item[2]
+            if len(item[3]) > 0:
+                item_dict['prefix'] = item[3]
+            ret.append(item_dict)
         return ret
 
 def test_data(fn):
