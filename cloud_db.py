@@ -270,9 +270,14 @@ def lookup_ip(db_file, ip):
 
     # First off, see if it's IPv6
     ipv6 = ":" in ip
-    # Decode the IP to a byte string, add a bit to the front to pick the right page
-    ip = (b'\xff' if ipv6 else b'\x00') + socket.inet_pton(socket.AF_INET6 if ipv6 else socket.AF_INET, ip)
+    # If IP is "info", then we just return the info dictionary, don't decode that value
+    if ip != "info":
+        # Decode the IP to a byte string, add a bit to the front to pick the right page
+        ip = (b'\xff' if ipv6 else b'\x00') + socket.inet_pton(socket.AF_INET6 if ipv6 else socket.AF_INET, ip)
 
+    # Little helper to wrap a file object, this lets us open a file if it's passed in
+    # as a string, or just use a file object, without closing it at the end, if one
+    # is passed in
     class FileHelper:
         def __init__(self):
             pass
@@ -286,27 +291,33 @@ def lookup_ip(db_file, ip):
             if isinstance(db_file, str):
                 self.f.close()
 
-    # with open(db_file, "rb") as f:
     with FileHelper() as f:
+        # Seek past the header's cookie
         f.seek(21)
         # Get the size of a field, and the location of the info dictionary
         _, field_size, info_loc = struct.unpack("!HHQ", f.read(12))
 
-        # For each bit in the IP, starting at byte #7, lookup which page to use
+        # Ok, we have the IP address as a list of bits, along with an extra
+        # byte at the beggining.  We only care about the last bit from
+        # that extra byte, so start at bit 6, which immediatly gets incremented
+        # to the last bit of the first byte.
         bit = 6
+        # The first offset is the first page, which is 128 bytes into the data
+        # structure, times two, since the even/odd value encodes if this is
+        # a page for a branch decision, or a page for a leaf information
         offset = 128 * 2
-        # While at an even number, lookup the page
-        while (offset % 2) == 0:
-            bit += 1
-            # Seek to the right offset, and move to the page for the give bit
-            f.seek((offset // 2) + (((ip[bit // 8] >> (7 - (bit % 8))) & 1) * field_size))
-            # Read the next offset
-            offset = struct.unpack("!Q", b"\x00" * (8-field_size) + f.read(field_size))[0]
 
-        # All done, so go ahead and read the data size
-        f.seek(offset // 2)
+        if ip != "info":
+            # While at an even number, lookup the branch decision page
+            while (offset % 2) == 0:
+                bit += 1
+                # Seek to the offset for the given bit, and move to its page
+                f.seek((offset // 2) + (((ip[bit // 8] >> (7 - (bit % 8))) & 1) * field_size))
+                # Read offset value for the given bit's value
+                offset = struct.unpack("!Q", b"\x00" * (8-field_size) + f.read(field_size))[0]
+
         def decode(f, offset):
-            # Helper to decode a value
+            # Helper to decode a value, understands dicts, lists, and strings
             f.seek(offset)
             val = struct.unpack("!B", f.read(1))[0]
             offset += 1
@@ -340,12 +351,18 @@ def lookup_ip(db_file, ip):
             else:
                 raise Exception()
 
+        # Pull out the info dictionary for this database
         info_dict, _ = decode(f, info_loc)
 
-        # Load the information to return
+        # If we asked for the info dictionary, just return all of it
+        if ip == "info":
+            return info_dict
+
+        # Load the information for this IP to return
         temp, _ = decode(f, offset // 2)
-        ret = []
+
         # Decode the data into a simple array of dicts to return
+        ret = []
         for item in temp:
             item_dict = {"source": info_dict["sources"].get(item[0], item[0])}
             if len(item[1]) > 0:
@@ -360,29 +377,32 @@ def lookup_ip(db_file, ip):
 def test_data(fn):
     # Just show simple output for some test IPs
     test_ips = [
-        '2600:1ff2:4000::', 
         '34.80.0.0', 
-        '2600:1900:4030::', 
-        '40.126.0.0', 
         '2a01:111:f403:f910::', 
         '127.1.2.7', 
-        '::1', 
         '8.8.8.8',
     ]
     with open(fn, "rb") as f:
+        info = lookup_ip(f, "info")
+        print(f" Database last built: {info['built']}")
         for ip in test_ips:
-            print(f"-- Testing {ip} --")
             data = lookup_ip(f, ip)
             if len(data) == 0:
-                print("(nothing found)")
+                print(f" {ip} - not found")
             else:
                 for item in data:
-                    print(json.dumps(item))
+                    print(f" {ip} - {json.dumps(item)}")
+
+def show_info(value):
+    print(datetime.utcnow().strftime("%d %H:%M:%S") + ": " + value)
 
 def main():
     fn = os.path.join("data", "cloud_db.dat")
+    show_info("Building database...")
     create_db(fn)
+    show_info("Testing database...")
     test_data(fn)
+    show_info("All done")
 
 if __name__ == "__main__":
     main()
