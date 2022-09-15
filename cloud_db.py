@@ -273,7 +273,21 @@ def lookup_ip(db_file, ip):
     # Decode the IP to a byte string, add a bit to the front to pick the right page
     ip = (b'\xff' if ipv6 else b'\x00') + socket.inet_pton(socket.AF_INET6 if ipv6 else socket.AF_INET, ip)
 
-    with open(db_file, "rb") as f:
+    class FileHelper:
+        def __init__(self):
+            pass
+        def __enter__(self, *args, **kargs):
+            if isinstance(db_file, str):
+                self.f = open(db_file, "rb")
+                return self.f
+            else:
+                return db_file
+        def __exit__(self, *args, **kargs):
+            if isinstance(db_file, str):
+                self.f.close()
+
+    # with open(db_file, "rb") as f:
+    with FileHelper() as f:
         f.seek(21)
         # Get the size of a field, and the location of the info dictionary
         _, field_size, info_loc = struct.unpack("!HHQ", f.read(12))
@@ -355,14 +369,15 @@ def test_data(fn):
         '::1', 
         '8.8.8.8',
     ]
-    for ip in test_ips:
-        print(f"-- Testing {ip} --")
-        data = lookup_ip(fn, ip)
-        if len(data) == 0:
-            print("(nothing found)")
-        else:
-            for item in data:
-                print(json.dumps(item))
+    with open(fn, "rb") as f:
+        for ip in test_ips:
+            print(f"-- Testing {ip} --")
+            data = lookup_ip(f, ip)
+            if len(data) == 0:
+                print("(nothing found)")
+            else:
+                for item in data:
+                    print(json.dumps(item))
 
 def main():
     fn = os.path.join("data", "cloud_db.dat")
