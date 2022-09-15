@@ -89,33 +89,39 @@ def enum_pages(targets):
             todo.appendleft(page.zero)
             todo.appendleft(page.one)
 
-def add_aws(targets, sources, short_name, long_name):
+def add_aws(stats, targets, sources, short_name, long_name):
     # Add all AWS ranges to our current working set
     sources[short_name] = long_name
     with gzip.open(os.path.join(BASE_DIR, "data", "raw_aws.json.gz")) as f:
         data = json.load(f)
 
+    stats["sources"] += 1
     for cur in data["prefixes"] + data["ipv6_prefixes"]:
+        stats["ranges"] += 1
         prefix = cur.get("ip_prefix", cur.get("ipv6_prefix"))
         add_data(short_name, targets, prefix, cur["service"], cur["region"])
 
-def add_google(targets, sources, short_name, long_name):
+def add_google(stats, targets, sources, short_name, long_name):
     # Add all Google ranges to our current working set
     sources[short_name] = long_name
     with gzip.open(os.path.join(BASE_DIR, "data", "raw_google.json.gz")) as f:
         data = json.load(f)
 
+    stats["sources"] += 1
     for cur in data['prefixes']:
+        stats["ranges"] += 1
         prefix = cur.get("ipv4Prefix", cur.get("ipv6Prefix"))
         add_data(short_name, targets, prefix, cur["service"], cur["scope"])
 
-def add_azure(targets, sources, short_name, long_name):
+def add_azure(stats, targets, sources, short_name, long_name):
     # Add all Azure ranges to our current working set
     sources[short_name] = long_name
     with gzip.open(os.path.join(BASE_DIR, "data", "raw_azure.json.gz")) as f:
         data = json.load(f)
 
+    stats["sources"] += 1
     for group in data["values"]:
+        stats["ranges"] += 1
         for prefix in group['properties']['addressPrefixes']:
             add_data(
                 short_name, targets, prefix, 
@@ -123,7 +129,7 @@ def add_azure(targets, sources, short_name, long_name):
                 group["properties"].get("region", ""),
             )
 
-def add_private(targets, sources, short_name, long_name):
+def add_private(stats, targets, sources, short_name, long_name):
     # Add all private IPs from a hardcoded list
     sources[short_name] = long_name
     ranges = [
@@ -147,20 +153,31 @@ def add_private(targets, sources, short_name, long_name):
         ("fe80::/10", "RFC 4291 Link Local address"),
         ("::1/128", "Loopback addresses"),
     ]
+    stats["sources"] += 1
     for prefix, desc in ranges:
+        stats["ranges"] += 1
         add_data(short_name, targets, prefix, desc, "")
 
-def add_other(targets, source):
+def add_other(stats, targets, source):
     # Add IPs from a pre-parsed list of data
     with gzip.open(os.path.join(BASE_DIR, "data", f"data_{source}.json.gz")) as f:
         data = json.load(f)
 
+    stats["sources"] += 1
     for prefix in data['v4'] + data['v6']:
+        stats["ranges"] += 1
         add_data(source, targets, prefix, "", "")
 
 def create_db(target_file):
     # The main page includes sub pages for IPv4 and IPv6
     targets = Level(both=None, zero=Level(), one=Level(), offset=0)
+
+    # Gather some stats the database is built up
+    stats = {
+        "ranges": 0,
+        "sources": 0,
+        "branches": 0,
+    }
 
     # This sources dict will end up in the database
     sources = {
@@ -174,12 +191,12 @@ def create_db(target_file):
         "vultr": "Vultr", 
     }
     for source in sources:
-        add_other(targets, source)
+        add_other(stats, targets, source)
     # Each of these helpers will add the description to the sources dictionary
-    add_aws(targets, sources, "aws", "AWS")
-    add_google(targets, sources, "google", "Google")
-    add_azure(targets, sources, "azure", "Azure")
-    add_private(targets, sources, "private", "Private IP")
+    add_aws(stats, targets, sources, "aws", "AWS")
+    add_google(stats, targets, sources, "google", "Google")
+    add_azure(stats, targets, sources, "azure", "Azure")
+    add_private(stats, targets, sources, "private", "Private IP")
 
     # Helper to encode a value to a byte string
     def encode_data(value):
@@ -196,7 +213,7 @@ def create_db(target_file):
             for v in value:
                 ret += encode_data(v)
         else:
-            value = value.encode("utf-8")
+            value = str(value).encode("utf-8")
             if len(value) >= 63:
                 ret += struct.pack('!BH', (63 << 2) | 3, len(value))
             else:
@@ -211,15 +228,21 @@ def create_db(target_file):
         if page.both is None:
             page.offset = offset
             offset += 8
+            stats["branches"] += 1
         else:
             key = encode_data(page.both)
             page.both = key
             valid_pages[key] = 0
 
+    # Add some stats, including the size of the file minus the final page
+    stats["leafs"] = len(valid_pages)
+    stats["size"] = offset + sum(len(x) for x in valid_pages)
+
     # Add one final page with some information
     info_page = encode_data({
         "sources": sources,
         "built": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+        "stats": stats
     })
     valid_pages[info_page] = 0
 
@@ -385,13 +408,15 @@ def test_data(fn):
     with open(fn, "rb") as f:
         info = lookup_ip(f, "info")
         print(f" Database last built: {info['built']}")
+        if "stats" in info:
+            print(" Stats: " + ", ".join(f"{k}: {int(v):,}" for k,v in info["stats"].items()))
         for ip in test_ips:
             data = lookup_ip(f, ip)
             if len(data) == 0:
-                print(f" {ip} - not found")
-            else:
-                for item in data:
-                    print(f" {ip} - {json.dumps(item)}")
+                data.append({"warn": "not found"})
+            for item in data:
+                item = {"ip": ip} | item
+                print(" " + ", ".join(f"{k}: '{v}'" for k,v in item.items()))
 
 def show_info(value):
     print(datetime.utcnow().strftime("%d %H:%M:%S") + ": " + value)
