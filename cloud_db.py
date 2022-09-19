@@ -17,6 +17,7 @@ import json
 import os
 import socket
 import struct
+import itertools
 
 BASE_DIR = os.path.split(__file__)[0]
 COOKIE = b'Cloud IPs Database\n\x00\x00'
@@ -415,7 +416,7 @@ def test_data(fn):
             if len(data) == 0:
                 data.append({"warn": "not found"})
             for item in data:
-                item = {"ip": ip} | item
+                item = {x:y for x,y in itertools.chain({"ip": ip}.items(), item.items())}
                 print(" " + ", ".join(f"{k}: '{v}'" for k,v in item.items()))
 
 def show_info(value):
