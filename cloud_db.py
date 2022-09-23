@@ -18,6 +18,7 @@ import os
 import socket
 import struct
 import itertools
+import sys
 
 BASE_DIR = os.path.split(__file__)[0]
 COOKIE = b'Cloud IPs Database\n\x00\x00'
@@ -406,29 +407,57 @@ def test_data(fn):
         '127.1.2.7', 
         '8.8.8.8',
     ]
+    lookup(fn, test_ips)
+
+def lookup(fn, ips):
     with open(fn, "rb") as f:
         info = lookup_ip(f, "info")
         print(f" Database last built: {info['built']}")
         if "stats" in info:
             print(" Stats: " + ", ".join(f"{k}: {int(v):,}" for k,v in info["stats"].items()))
-        for ip in test_ips:
+        for ip in ips:
             data = lookup_ip(f, ip)
             if len(data) == 0:
+                # Add a message if there was no entry found
                 data.append({"warn": "not found"})
             for item in data:
+                # Add the IP because this is called multiple times in one run
                 item = {x:y for x,y in itertools.chain({"ip": ip}.items(), item.items())}
                 print(" " + ", ".join(f"{k}: '{v}'" for k,v in item.items()))
 
 def show_info(value):
     print(datetime.utcnow().strftime("%d %H:%M:%S") + ": " + value)
 
+def lookup_ips(fn, ips):
+    # Lookup IPs, but first lookup FQDNs for anything
+    # that doesn't look like a raw IP
+    import re
+
+    temp = []
+    for cur in ips:
+        if re.match("^([0-9.]+|[0-9a-f:]+)$", cur):
+            temp.append(cur)
+        else:
+            temp.append(socket.gethostbyname(cur))
+    
+    lookup(fn, temp)
+
 def main():
+    if len(sys.argv) == 1 or sys.argv[1] in {"--help", "-h", "/?", "/h"}:
+        print("Usage:")
+        print("  build - Rebuild the cloud_db.dat database file")
+        print("  <ip> - Lookup IP and show results")
+        exit(1)
+
     fn = os.path.join("data", "cloud_db.dat")
-    show_info("Building database...")
-    create_db(fn)
-    show_info("Testing database...")
-    test_data(fn)
-    show_info("All done")
+    if sys.argv[1] == "build":
+        show_info("Building database...")
+        create_db(fn)
+        show_info("Testing database...")
+        test_data(fn)
+        show_info("All done")
+    else:
+        lookup_ips(fn, sys.argv[1:])
 
 if __name__ == "__main__":
     main()

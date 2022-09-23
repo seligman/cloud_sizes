@@ -213,7 +213,7 @@ def main():
 
     # Once a week, update the cloud database
     if datetime.utcnow().weekday() == 0:
-        run(["python3", "cloud_db.py"])
+        run(["python3", "cloud_db.py", "build"])
 
     if run_git_commands:
         # Check in any changes
