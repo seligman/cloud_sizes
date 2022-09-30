@@ -22,6 +22,7 @@ import sys
 
 BASE_DIR = os.path.split(__file__)[0]
 COOKIE = b'Cloud IPs Database\n\x00\x00'
+RANGES_ONLY = False
 
 class Level:
     # The basic idea here is to store a series of pages.  Each page
@@ -39,6 +40,10 @@ class Level:
 
 def add_data(source, targets, prefix, service, region):
     # Add an data blob to our tree
+
+    if RANGES_ONLY:
+        print(prefix)
+        return
 
     # First off, pick the IPv4 or IPv6 tree
     cidr = IPNetwork(prefix)
@@ -199,6 +204,9 @@ def create_db(target_file):
     add_google(stats, targets, sources, "google", "Google")
     add_azure(stats, targets, sources, "azure", "Azure")
     add_private(stats, targets, sources, "private", "Private IP")
+
+    if RANGES_ONLY:
+        return
 
     # Helper to encode a value to a byte string
     def encode_data(value):
@@ -443,14 +451,19 @@ def lookup_ips(fn, ips):
     lookup(fn, temp)
 
 def main():
+    global RANGES_ONLY
     if len(sys.argv) == 1 or sys.argv[1] in {"--help", "-h", "/?", "/h"}:
         print("Usage:")
         print("  build - Rebuild the cloud_db.dat database file")
+        print("  ranges - Output ranges used for database only")
         print("  <ip> - Lookup IP and show results")
         exit(1)
 
     fn = os.path.join("data", "cloud_db.dat")
-    if sys.argv[1] == "build":
+    if sys.argv[1] == "ranges":
+        RANGES_ONLY = True
+        create_db(fn)
+    elif sys.argv[1] == "build":
         show_info("Building database...")
         create_db(fn)
         show_info("Testing database...")
