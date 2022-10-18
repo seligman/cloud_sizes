@@ -8,6 +8,7 @@ import os
 files = [
     ("html", "index.html", "text/html", False),
     ("html", "cidr_helper.min.js", "text/javascript", False),
+    ("html", "favicon.ico", "image/x-icon", False),
     ("html", "favicon-32x32.png", "image/png", False),
     ("html", "favicon-16x16.png", "image/png", False),
     ("data", "cloud_db.dat", "application/octect-stream", True),
