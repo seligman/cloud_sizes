@@ -52,6 +52,7 @@ def main():
                 }
                 new_data = json.dumps(new_data, separators=(',', ':'), sort_keys=True)
 
+                extra_pad = ""
                 if old_data != new_data:
                     # Dump out the data, set the mtime so the compressed file is deterministic
                     with io.TextIOWrapper(gzip.GzipFile(dest_name, "w", 9, mtime=0), newline="") as f:
@@ -68,11 +69,13 @@ def main():
                             change = f"+{new_v4_size - old_v4_size}"
                         else:
                             change = f"-{old_v4_size - new_v4_size}"
-                        print(f"got {v4.size:>8} IPs, change by {change:>6}", flush=True, end="")
+                        print(f"got {v4.size:>8} IPs, change by {change:>8}", flush=True, end="")
                     else:
                         print(f"got {v4.size:>8} IPs", flush=True, end="")
+                        extra_pad = ' ' * 20
                 else:
                     print(f"got {v4.size:>8} IPs, no change", flush=True, end="")
+                    extra_pad = ' ' * 9
 
                 # Also log out the raw data
                 old_data = b'--'
@@ -90,9 +93,9 @@ def main():
                 if old_data != new_data:
                     with gzip.open(dest_name, "wb") as f:
                         f.write(new_data)
-                        print(f", wrote out {len(new_data):9d} bytes of raw data", flush=True)
+                        print(f",{extra_pad} wrote {len(new_data):9d} bytes raw", flush=True)
                 else:
-                    print(f", raw data didn't change.", flush=True)
+                    print(f",{extra_pad} no change of raw data.", flush=True)
             except Exception as e:
                 print("ERROR: " + str(e))
 
