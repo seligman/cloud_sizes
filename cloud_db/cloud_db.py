@@ -208,17 +208,24 @@ def create_db(target_file):
         "vultr": "Vultr", 
     }
     for source in sources:
+        show_info(f"Adding {source}")
         add_other(stats, targets, source)
     # Each of these helpers will add the description to the sources dictionary
+    show_info(f"Adding AWS")
     add_aws(stats, targets, sources, "aws", "AWS")
+    show_info(f"Adding Google")
     add_google(stats, targets, sources, "google", "Google")
+    show_info(f"Adding Azure")
     add_azure(stats, targets, sources, "azure", "Azure")
+    show_info(f"Adding Private IPs")
     add_private(stats, targets, sources, "private", "Private IP")
+
     add_asn(stats, targets, sources)
 
     if RANGES_ONLY:
         return
 
+    show_info(f"Writing out final data")
     # Helper to encode a value to a byte string
     def encode_data(value):
         ret = b''
@@ -245,10 +252,11 @@ def create_db(target_file):
     # Figure out all of the page offsets
     valid_pages = {}
     offset = 128
+    field_size = 4
     for page in enum_pages(targets):
         if page.both is None:
             page.offset = offset
-            offset += 8
+            offset += field_size * 2
             stats["branches"] += 1
         else:
             key = encode_data(page.both)
@@ -272,11 +280,8 @@ def create_db(target_file):
         valid_pages[key] = offset
         offset += len(key)
 
-    field_size = 1
-    offset *= 2
-    while offset >= 256:
-        field_size += 1
-        offset /= 256
+    if 2 ** (8 * field_size) < offset:
+        raise Exception(f"Field size of {field_size} is too small for final offset of {offset}")
     
     # Write out all of the data
     with open(target_file, "wb") as f:
