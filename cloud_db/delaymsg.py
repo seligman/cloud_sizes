@@ -81,8 +81,14 @@ class TempMsg:
 
     def clear(self):
         if len(self.last):
-            print("\r" + " " * len(self.temp) + "\r", end="", flush=True)
+            print("\r" + " " * len(self.last) + "\r", end="", flush=True)
             self.last = ""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args, **kargs):
+        self.clear()
 
 def show(value, end="\n", flush=False, begin="", file=stdout):
     msg = f'{datetime.utcnow().strftime("%d %H:%M:%S")}: {value}'
