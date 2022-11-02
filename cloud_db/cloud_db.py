@@ -76,7 +76,7 @@ def add_data(source, targets, prefix, service, region):
             # sub pages if it's a leaf
             if level.both is not None:
                 level.zero = Level(level.both[:])
-                level.one = Level(level.both)
+                level.one = Level(level.both[:])
                 level.both = None
 
             # And go into the sub page
