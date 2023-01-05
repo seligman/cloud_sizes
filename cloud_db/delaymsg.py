@@ -28,6 +28,9 @@ class DelayMsg:
     def show(self, value):
         now = datetime.utcnow()
         if now >= self.next_msg or self.show_all:
+            if not stdout.isatty():
+                return
+
             end, flush, begin = "\n", False, ""
             if self.single_line:
                 end, flush = "", True
@@ -43,7 +46,7 @@ class DelayMsg:
                 self.next_msg += timedelta(seconds=self.delay)
 
     def finalize(self):
-        if self.single_line:
+        if self.single_line and len(self.last_msg):
             print("\r" + " " * len(self.last_msg) + "\r", end="", flush=True, file=self.file)
 
     def force(self, value):
@@ -68,6 +71,9 @@ class TempMsg:
         self.show(value, temp=True)
     
     def show(self, value, temp=False):
+        if not stdout.isatty():
+            return
+
         value = datetime.utcnow().strftime("%d %H:%M:%S: ") + value
         if len(self.last) > 0:
             extra = len(self.last) - len(value)
