@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-import os
-from importlib.util import spec_from_file_location, module_from_spec
-import json
 from datetime import datetime
+from importlib.util import spec_from_file_location, module_from_spec
 import gzip
 import io
+import json
+import os
 
 def main():
     # A summary of this run
@@ -25,7 +25,7 @@ def main():
                 spec = spec_from_file_location("ips", os.path.join("helpers", cur))
                 ips = module_from_spec(spec)
                 spec.loader.exec_module(ips)
-                name, pretty, v4, v6, show, raw_data, raw_format = ips.get_and_parse()
+                name, pretty, v4, v6, show, raw_data, raw_format, allowed_overlap = ips.get_and_parse()
                 pretties[name] = [pretty, show]
                 # Add a summary to our summary dictionary
                 all_info[name] = [v4.size, v6.size]

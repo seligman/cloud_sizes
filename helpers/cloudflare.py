@@ -15,7 +15,7 @@ def get_and_parse():
     data.append(ips)
     v6 = IPSet([IPNetwork(x) for x in ips.split("\n")])
 
-    return "cloudflare", "Cloudflare", v4, v6, True, data, "json"
+    return "cloudflare", "Cloudflare", v4, v6, True, data, "json", {}
 
 if __name__ == "__main__":
     print("This module is not meant to be run directly")

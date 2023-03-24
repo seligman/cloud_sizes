@@ -22,7 +22,7 @@ def get_and_parse():
     v4 = IPSet([x for x in azure.iter_cidrs() if x.network.version == 4])
     v6 = IPSet([x for x in azure.iter_cidrs() if x.network.version == 6])
 
-    return "azure", "Azure", v4, v6, True, data, "json"
+    return "azure", "Azure", v4, v6, True, data, "json", {"github"}
 
 
 if __name__ == "__main__":
