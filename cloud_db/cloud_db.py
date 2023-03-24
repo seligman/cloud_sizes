@@ -97,6 +97,19 @@ def enum_pages(targets):
             todo.appendleft(page.zero)
             todo.appendleft(page.one)
 
+def add_github(stats, targets, sources, short_name, long_name):
+    # Add all GitHub ranges to our current working set
+    sources[short_name] = long_name
+    with gzip.open(os.path.join(BASE_DIR, "..", "data", "raw_github.json.gz")) as f:
+        data = json.load(f)
+
+    stats["sources"] += 1
+    for key, value in data.items():
+        if key not in {"verifiable_password_authentication", "ssh_key_fingerprints", "ssh_keys"}:
+            if isinstance(value, list):
+                for cur in value:
+                    add_data(short_name, targets, cur, key, "")
+
 def add_aws(stats, targets, sources, short_name, long_name):
     # Add all AWS ranges to our current working set
     sources[short_name] = long_name
@@ -217,6 +230,8 @@ def create_db(target_file):
     add_google(stats, targets, sources, "google", "Google")
     show_info(f"Adding Azure")
     add_azure(stats, targets, sources, "azure", "Azure")
+    show_info(f"Adding GitHub")
+    add_github(stats, targets, sources, "github", "GitHub")
     show_info(f"Adding Private IPs")
     add_private(stats, targets, sources, "private", "Private IP")
 
