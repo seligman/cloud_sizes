@@ -5,9 +5,9 @@
 # accomplish in a language and library independent fashion.
 #
 # For a stand alone version of this tool's lookup functionality, see
-#   https://github.com/seligman/seligman.github.io/blob/master/cloud-ips/lookup_ip_address.py
+#   https://github.com/seligman/cloud_sizes/blob/master/cloud_db/lookup_ip_address.py
 # And for a online version of the lookup tool, please see
-#   https://seligman.github.io/cloud-ips/
+#   https://cloud-ips.s3-us-west-2.amazonaws.com/index.html
 
 from collections import deque
 from datetime import datetime
