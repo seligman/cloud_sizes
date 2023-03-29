@@ -5,7 +5,81 @@ from importlib.util import spec_from_file_location, module_from_spec
 import gzip
 import io
 import json
+import math
 import os
+
+def pretty(val, show_sign=True):
+    sign = ""
+    if show_sign:
+        if val > 0:
+            sign = "+"
+        elif val < 0:
+            sign = "-"
+            val = abs(val)
+    if val >= 100000:
+        e = int(math.log10(val))
+        return f"{sign}{val / (10 ** (e)):.2f}e{e}"
+    else:
+        return f"{sign}{val}"
+
+def create_summary():
+    # Just create a summary view as a simple RSS file
+    rows = []
+    with open(os.path.join("data", "summary.jsonl"), "rt") as f:
+        for row in f:
+            row = json.loads(row)
+            rows.append(row)
+            if len(rows) > 11:
+                rows.pop(0)
+
+    known = set()
+    for row in rows:
+        known |= set(row)
+    known.remove("_")
+
+    with open("rss.xml", "wt", newline="", encoding="utf-8") as f:
+        f.write('<?xml version="1.0" encoding="UTF-8" ?>\n')
+        f.write('<rss version="2.0">\n')
+        f.write('  <channel>\n')
+        f.write('    <title>Cloud IP Ranges Updates</title>\n')
+        f.write('    <link>https://github.com/seligman/cloud_sizes</link>\n')
+        f.write('    <description>Changes to Cloud IP Ranges</description>\n')
+
+        last = None
+        for row in rows:
+            if last is not None:
+                link = "https://github.com/seligman/cloud_sizes#summary_" + row["_"].replace(" ", "-").replace(":", "-")
+                f.write('    <item>\n')
+                f.write('      <title>Cloud IP summary ' + row["_"] + '</title>\n')
+                f.write('      <link>' + link + '</link>\n')
+                f.write('      <description><![CDATA[<pre>')
+                f.write("Cloud IP Report summary for " + row["_"] + "\n")
+                f.write("All values are IPv4 / IPv6\n")
+                f.write("\n")
+                f.write("                     Total        --       Change        --       Change %\n")
+                for key in sorted(known):
+                    val_cur = row.get(key, [0, 0])
+                    val_last = last.get(key, [0, 0])
+                    msg = f"{key + ':':<13} "
+                    msg += f"{pretty(val_cur[0], False):>8} / {pretty(val_cur[1], False):>8} -- "
+                    msg += f"{pretty(val_cur[0] - val_last[0]):>8} / {pretty(val_cur[1] - val_last[1]):>8} -- "
+                    temp = []
+                    for i in range(2):
+                        if val_cur[0] > 0 and val_last[0] == 0:
+                            temp.append(f" (new)  ")
+                        elif val_cur[0] > 0 and val_cur[0] == val_last[0]:
+                            temp.append(f"     -  ")
+                        elif val_cur[0] > 0:
+                            temp.append(f"{((val_cur[0] - val_last[0]) / val_cur[0]) * 100:7.2f}%")
+                        else:
+                            temp.append(f" (n/a)  ")
+                    msg += " / ".join(temp)
+                    f.write(msg + "\n")
+                f.write(']]></description>\n')
+                f.write('    </item>\n')
+            last = row
+        f.write('  </channel>\n')
+        f.write('</rss>\n')
 
 def main():
     # A summary of this run
@@ -113,6 +187,8 @@ def main():
     with open(os.path.join("data", "names.json"), "wt", newline="") as f:
         json.dump(pretties, f, separators=(',', ':'), sort_keys=True)
 
+    # And dump out the RSS summary
+    create_summary()
 
 if __name__ == "__main__":
     main()
