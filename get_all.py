@@ -65,12 +65,12 @@ def create_summary():
                     msg += f"{pretty(val_cur[0] - val_last[0]):>8} / {pretty(val_cur[1] - val_last[1]):>8} -- "
                     temp = []
                     for i in range(2):
-                        if val_cur[0] > 0 and val_last[0] == 0:
+                        if val_cur[i] > 0 and val_last[i] == 0:
                             temp.append(f" (new)  ")
-                        elif val_cur[0] > 0 and val_cur[0] == val_last[0]:
+                        elif val_cur[i] > 0 and val_cur[i] == val_last[i]:
                             temp.append(f"     -  ")
-                        elif val_cur[0] > 0:
-                            temp.append(f"{((val_cur[0] - val_last[0]) / val_cur[0]) * 100:7.2f}%")
+                        elif val_cur[i] > 0:
+                            temp.append(f"{((val_cur[i] - val_last[i]) / val_cur[i]) * 100:7.2f}%")
                         else:
                             temp.append(f" (n/a)  ")
                     msg += " / ".join(temp)
