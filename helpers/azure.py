@@ -10,10 +10,11 @@ def get_and_parse():
     # something oddball like dig into an HTML page to get the latest
     # data file.
     url = "https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519"
-    data = get(url).text
+    data = get(url, headers={"User-Agent": "Not a Robot"}).text
+
     m = re.search('(?P<json>https://download.*?\.json)', data)
     url = m.group("json")
-    data = get(url).json()
+    data = get(url, headers={"User-Agent": "Not a Robot"}).json()
 
     # Pull out all of the IPs
     azure = IPSet(IPNetwork(y) for y in chain.from_iterable(x['properties']['addressPrefixes'] for x in data['values']))
@@ -23,7 +24,6 @@ def get_and_parse():
     v6 = IPSet([x for x in azure.iter_cidrs() if x.network.version == 6])
 
     return "azure", "Azure", v4, v6, True, data, "json", {"github"}
-
 
 if __name__ == "__main__":
     print("This module is not meant to be run directly")
