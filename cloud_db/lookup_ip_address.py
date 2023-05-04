@@ -207,7 +207,9 @@ def main():
         for ip in sys.argv[1:]:
             # If something doesn't look like an IP, treat it as a FQDN and lookup the IP
             if not re.match("^([0-9.]+|[0-9a-f:]+)$", ip):
-                ip = socket.gethostbyname(ip)
+                found_ip = socket.gethostbyname(ip)
+                print(f"Using '{found_ip}' for '{ip}'")
+                ip = found_ip
             data = lookup_ip(f, ip)
             if len(data) == 0:
                 # Show that there's no IP, so we output something
