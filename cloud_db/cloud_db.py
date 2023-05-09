@@ -455,6 +455,9 @@ def lookup(fn, ips):
         if "stats" in info:
             print(" Stats: " + ", ".join(f"{k}: {int(v):,}" for k,v in info["stats"].items()))
         for ip in ips:
+            desc = None
+            if isinstance(ip, tuple):
+                ip, desc = ip
             data = lookup_ip(f, ip)
             if len(data) == 0:
                 # Add a message if there was no entry found
@@ -462,6 +465,8 @@ def lookup(fn, ips):
             for item in data:
                 # Add the IP because this is called multiple times in one run
                 item = {x:y for x,y in itertools.chain({"ip": ip}.items(), item.items())}
+                if desc is not None:
+                    item = {x:y for x,y in itertools.chain({"desc": desc}.items(), item.items())}
                 print(" " + ", ".join(f"{k}: '{v}'" for k,v in item.items()))
 
 def show_info(value):
@@ -477,7 +482,11 @@ def lookup_ips(fn, ips):
         if re.match("^([0-9.]+|[0-9a-f:]+)$", cur):
             temp.append(cur)
         else:
-            temp.append(socket.gethostbyname(cur))
+            try:
+                ip = socket.gethostbyname(cur)
+                temp.append((ip, cur))
+            except Exception as e:
+                print(f"ERROR: {e} for {cur}")
     
     lookup(fn, temp)
 

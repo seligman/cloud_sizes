@@ -206,17 +206,27 @@ def main():
 
         for ip in sys.argv[1:]:
             # If something doesn't look like an IP, treat it as a FQDN and lookup the IP
+            desc = None
             if not re.match("^([0-9.]+|[0-9a-f:]+)$", ip):
-                found_ip = socket.gethostbyname(ip)
-                print(f"Using '{found_ip}' for '{ip}'")
-                ip = found_ip
-            data = lookup_ip(f, ip)
+                desc = ip
+                try:
+                    ip = socket.gethostbyname(ip)
+                    print(f"Using '{ip}' for '{desc}'")
+                except Exception as e:
+                    print(f"ERROR: {e} for {desc}")
+                    ip = None
+            if ip is not None:
+                data = lookup_ip(f, ip)
+            else:
+                data = []
             if len(data) == 0:
                 # Show that there's no IP, so we output something
                 data.append({"warning": "Not found"})
             for row in data:
                 # Add the IP to the return since we might lookup multiple values
                 row["ip"] = ip
+                if desc is not None:
+                    row["desc"] = desc
                 print(json.dumps(row)) 
 
 if __name__ == "__main__":
