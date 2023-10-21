@@ -196,7 +196,7 @@ def lookup_ip(db_file, ip):
 
 def main():
     if len(sys.argv) == 1:
-        print("Need to specify IP to lookup")
+        print("Need to specify one or more IPs to lookup")
         exit(1)
 
     with read_cache_remote() as f:
@@ -207,13 +207,21 @@ def main():
         for ip in sys.argv[1:]:
             # If something doesn't look like an IP, treat it as a FQDN and lookup the IP
             desc = None
-            if not re.match("^([0-9.]+|[0-9a-f:]+)$", ip):
+            if re.match("^([0-9.]+|[0-9a-f:]+)$", ip):
+                print(json.dumps({"info": f"Using '{ip}'"}))
+            else:
                 desc = ip
+                # Look for something that looks like a URL
+                m = re.match("^(http|https|ftp)://(?P<dn>[^/:]+)", ip)
+                if m is not None:
+                    ip = m.group('dn')
+                # Try to perform a DNS query on the string
                 try:
                     ip = socket.gethostbyname(ip)
-                    print(f"Using '{ip}' for '{desc}'")
+                    print(json.dumps({"info": f"Using '{ip}' for '{desc}'"}))
                 except Exception as e:
-                    print(f"ERROR: {e} for {desc}")
+                    # Dump out errors
+                    print(json.dumps({"ERROR": f"ERROR: {e} for {desc}"}))
                     ip = None
             if ip is not None:
                 data = lookup_ip(f, ip)
