@@ -86,7 +86,7 @@ def create_summary():
 
 def main():
     # A summary of this run
-    run_at = datetime.datetime.now(UTC).replace(tzinfo=None).strftime("%Y-%m-%d %H:%M:%S")
+    run_at = datetime.now(UTC).replace(tzinfo=None).strftime("%Y-%m-%d %H:%M:%S")
     all_info = {
         '_': run_at,
     }

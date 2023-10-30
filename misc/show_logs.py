@@ -24,7 +24,7 @@ def recent(quick_only=False):
         'descending': True,
         'orderBy': 'LastEventTime',
     }
-    oldest = datetime.datetime.now(UTC).replace(tzinfo=None) - timedelta(days=7)
+    oldest = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=7)
     epoch = datetime(1970, 1, 1)
     last_msg = ""
     msgs = []

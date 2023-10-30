@@ -42,6 +42,6 @@ for source, key, mime, historical in files:
                 },
             )
             if historical:
-                key = "history/cloud_" + datetime.datetime.now(UTC).replace(tzinfo=None).strftime("%Y/%m/%Y%m%d-%H%M%S") + ".dat"
+                key = "history/cloud_" + datetime.now(UTC).replace(tzinfo=None).strftime("%Y/%m/%Y%m%d-%H%M%S") + ".dat"
                 print(f"Uploading {key}...")
                 s3.upload_file(fn, "cloud-ips", key)

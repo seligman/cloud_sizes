@@ -287,7 +287,7 @@ def create_db(target_file):
     # Add one final page with some information
     info_page = encode_data({
         "sources": sources,
-        "built": datetime.datetime.now(UTC).replace(tzinfo=None).strftime("%Y-%m-%d %H:%M:%S"),
+        "built": datetime.now(UTC).replace(tzinfo=None).strftime("%Y-%m-%d %H:%M:%S"),
         "stats": stats
     })
     valid_pages[info_page] = 0
@@ -472,7 +472,7 @@ def lookup(fn, ips):
                 print(" " + ", ".join(f"{k}: '{v}'" for k,v in item.items()))
 
 def show_info(value):
-    print(datetime.datetime.now(UTC).replace(tzinfo=None).strftime("%d %H:%M:%S") + ": " + value)
+    print(datetime.now(UTC).replace(tzinfo=None).strftime("%d %H:%M:%S") + ": " + value)
 
 def lookup_ips(fn, ips):
     # Lookup IPs, but first lookup FQDNs for anything
