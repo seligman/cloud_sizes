@@ -2,15 +2,18 @@
 
 from datetime import datetime, timedelta
 from sys import stdout
+import sys
+if sys.version_info >= (3, 11): from datetime import UTC
+else: import datetime as datetime_fix; UTC=datetime_fix.timezone.utc
 
 class DelayMsg:
     def __init__(self, delay=5, show_all=False, log_format="Time", single_line=False, file=stdout):
         if log_format.lower() not in {"time", "timer", "none"}:
             raise Exception("Use 'Time' or 'Timer' for the log format")
         self.file = file
-        self.start = datetime.utcnow()
+        self.start = datetime.now(UTC).replace(tzinfo=None)
         self.log_format = log_format.lower()
-        self.next_msg = datetime.utcnow()
+        self.next_msg = datetime.now(UTC).replace(tzinfo=None)
         self.delay = delay
         self.show_all = show_all
         self.single_line = single_line
@@ -26,7 +29,7 @@ class DelayMsg:
         self.finalize()
 
     def show(self, value):
-        now = datetime.utcnow()
+        now = datetime.now(UTC).replace(tzinfo=None)
         if now >= self.next_msg or self.show_all:
             if not stdout.isatty():
                 return
@@ -50,7 +53,7 @@ class DelayMsg:
             print("\r" + " " * len(self.last_msg) + "\r", end="", flush=True, file=self.file)
 
     def force(self, value):
-        now = datetime.utcnow()
+        now = datetime.now(UTC).replace(tzinfo=None)
         if self.log_format == "timer":
             show_timer(value, self.start, file=self.file)
         elif self.log_format == "time":
@@ -61,7 +64,7 @@ class DelayMsg:
             self.next_msg += timedelta(seconds=self.delay)
 
     def time_to_show(self):
-        return datetime.utcnow() >= self.next_msg
+        return datetime.now(UTC).replace(tzinfo=None) >= self.next_msg
 
 class TempMsg:
     def __init__(self):
@@ -74,7 +77,7 @@ class TempMsg:
         if not stdout.isatty():
             return
 
-        value = datetime.utcnow().strftime("%d %H:%M:%S: ") + value
+        value = datetime.now(UTC).replace(tzinfo=None).strftime("%d %H:%M:%S: ") + value
         if len(self.last) > 0:
             extra = len(self.last) - len(value)
             if extra > 0:
@@ -97,12 +100,12 @@ class TempMsg:
         self.clear()
 
 def show(value, end="\n", flush=False, begin="", file=stdout):
-    msg = f'{datetime.utcnow().strftime("%d %H:%M:%S")}: {value}'
+    msg = f'{datetime.now(UTC).replace(tzinfo=None).strftime("%d %H:%M:%S")}: {value}'
     print(begin + msg, end=end, flush=flush, file=file)
     return msg
 
 def show_timer(value, start, end="\n", flush=False, begin="", file=stdout):
-    secs = int((datetime.utcnow() - start).total_seconds())
+    secs = int((datetime.now(UTC).replace(tzinfo=None) - start).total_seconds())
     msg = f'{secs // 3600}:{(secs // 60) % 60:02d}:{secs % 60:02d}: {value}'
     print(begin + msg, end=end, flush=flush, file=file)
     return msg
