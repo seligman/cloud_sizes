@@ -4,6 +4,9 @@ from calc_etag import calculate_etag
 from datetime import datetime
 import boto3
 import os
+import sys
+if sys.version_info >= (3, 11): from datetime import UTC
+else: import datetime as datetime_fix; UTC=datetime_fix.timezone.utc
 
 files = [
     ("html", "index.html", "text/html", False),
@@ -39,6 +42,6 @@ for source, key, mime, historical in files:
                 },
             )
             if historical:
-                key = "history/cloud_" + datetime.utcnow().strftime("%Y/%m/%Y%m%d-%H%M%S") + ".dat"
+                key = "history/cloud_" + datetime.datetime.now(UTC).replace(tzinfo=None).strftime("%Y/%m/%Y%m%d-%H%M%S") + ".dat"
                 print(f"Uploading {key}...")
                 s3.upload_file(fn, "cloud-ips", key)

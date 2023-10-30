@@ -6,11 +6,13 @@ import matplotlib.pyplot as plt
 import os
 import subprocess
 import sys
+if sys.version_info >= (3, 11): from datetime import UTC
+else: import datetime as datetime_fix; UTC=datetime_fix.timezone.utc
 
-_started = datetime.utcnow()
+_started = datetime.datetime.now(UTC).replace(tzinfo=None)
 def log_step(value):
     # Simple helper to show how long everything takes
-    print(f"{(datetime.utcnow() - _started).total_seconds():8.4f}: {value}", flush=True)
+    print(f"{(datetime.datetime.now(UTC).replace(tzinfo=None) - _started).total_seconds():8.4f}: {value}", flush=True)
 
 def run(cmd):
     # Run commands

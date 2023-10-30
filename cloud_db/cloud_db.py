@@ -20,6 +20,8 @@ import struct
 import itertools
 import sys
 import asn_helper
+if sys.version_info >= (3, 11): from datetime import UTC
+else: import datetime as datetime_fix; UTC=datetime_fix.timezone.utc
 
 BASE_DIR = os.path.split(__file__)[0]
 COOKIE = b'Cloud IPs Database\n\x00\x00'
@@ -285,7 +287,7 @@ def create_db(target_file):
     # Add one final page with some information
     info_page = encode_data({
         "sources": sources,
-        "built": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
+        "built": datetime.datetime.now(UTC).replace(tzinfo=None).strftime("%Y-%m-%d %H:%M:%S"),
         "stats": stats
     })
     valid_pages[info_page] = 0
@@ -470,7 +472,7 @@ def lookup(fn, ips):
                 print(" " + ", ".join(f"{k}: '{v}'" for k,v in item.items()))
 
 def show_info(value):
-    print(datetime.utcnow().strftime("%d %H:%M:%S") + ": " + value)
+    print(datetime.datetime.now(UTC).replace(tzinfo=None).strftime("%d %H:%M:%S") + ": " + value)
 
 def lookup_ips(fn, ips):
     # Lookup IPs, but first lookup FQDNs for anything

@@ -5,6 +5,8 @@ import boto3
 import sys
 import os
 import re
+if sys.version_info >= (3, 11): from datetime import UTC
+else: import datetime as datetime_fix; UTC=datetime_fix.timezone.utc
 
 AWS_PROFILE = "pers"
 AWS_REGION = "us-west-2"
@@ -22,7 +24,7 @@ def recent(quick_only=False):
         'descending': True,
         'orderBy': 'LastEventTime',
     }
-    oldest = datetime.utcnow() - timedelta(days=7)
+    oldest = datetime.datetime.now(UTC).replace(tzinfo=None) - timedelta(days=7)
     epoch = datetime(1970, 1, 1)
     last_msg = ""
     msgs = []

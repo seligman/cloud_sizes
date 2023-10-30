@@ -13,6 +13,8 @@ import re
 import socket
 import struct
 import sys
+if sys.version_info >= (3, 11): from datetime import UTC
+else: import datetime as datetime_fix; UTC=datetime_fix.timezone.utc
 
 # The URL of the data file
 CLOUD_URL = "https://cloud-ips.s3-us-west-2.amazonaws.com/cloud_db.dat"
@@ -21,7 +23,7 @@ CLOUD_URL = "https://cloud-ips.s3-us-west-2.amazonaws.com/cloud_db.dat"
 def read_cache_local():
     fn = "lookup_ip_address.dat"
     # If the local copy is older than two weeks, pull down a fresh copy
-    max_age = (datetime.utcnow() - timedelta(days=14)).strftime("%Y-%m-%d %H:%M:%S")
+    max_age = (datetime.datetime.now(UTC).replace(tzinfo=None) - timedelta(days=14)).strftime("%Y-%m-%d %H:%M:%S")
 
     if os.path.isfile(fn):
         f = open(fn, "rb")

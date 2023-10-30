@@ -7,6 +7,9 @@ import io
 import json
 import math
 import os
+import sys
+if sys.version_info >= (3, 11): from datetime import UTC
+else: import datetime as datetime_fix; UTC=datetime_fix.timezone.utc
 
 def pretty(val, show_sign=True):
     sign = ""
@@ -83,7 +86,7 @@ def create_summary():
 
 def main():
     # A summary of this run
-    run_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    run_at = datetime.datetime.now(UTC).replace(tzinfo=None).strftime("%Y-%m-%d %H:%M:%S")
     all_info = {
         '_': run_at,
     }
