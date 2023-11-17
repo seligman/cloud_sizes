@@ -19,7 +19,6 @@ import socket
 import struct
 import itertools
 import sys
-import asn_helper
 if sys.version_info >= (3, 11): from datetime import UTC
 else: import datetime as datetime_fix; UTC=datetime_fix.timezone.utc
 
@@ -153,6 +152,8 @@ def add_azure(stats, targets, sources, short_name, long_name):
             )
 
 def add_asn(stats, targets, sources):
+    import asn_helper
+    
     sources["asn"] = "ASN"
     stats["sources"] += 1
 
