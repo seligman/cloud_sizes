@@ -104,8 +104,43 @@ def main():
     process_raw_history()
 
     for year in sorted(years)[:-1]:
-        print(f"Compressing {year}")
-        cmd = f"find {year} -type f | sort | tar --owner=0 --group=0 -T - -cvzf {year}.tar.gz ; rm -rf {year}"
+        files = []
+        for dirname, dirnames, filenames in os.walk(year):
+            for fn in filenames:
+                full_name = os.path.join(dirname, fn)
+                files.append({
+                    'fn': fn,
+                    'full_name': full_name, 
+                    'size': os.path.getsize(full_name),
+                })
+
+        # Sort by filename, in other words, sort by date
+        files.sort(key=lambda x: x['fn'])
+        batches = []
+
+        for file in files:
+            # Assume at least a 5x compression ratio, limit filesize to 100 MiB
+            if len(batches) == 0 or batches[-1]['size'] >= (100 * 1024 * 1024) * 5:
+                batches.append({'files': [], 'size': 0, 'id': ''})
+            batches[-1]['files'].append(file)
+            batches[-1]['size'] += file['size']
+
+        if len(batches) > 1:
+            for i, batch in enumerate(batches):
+                batch['id'] = f"_{i+1:02d}"
+
+        for batch in batches:
+            with open("_temp_files", "wt") as f:
+                for cur in batch['files']:
+                    f.write(cur['full_name'] + "\n")
+            dest_fn = f"{year}{batch['id']}.tar.gz"
+            cmd = f"tar --owner=0 --group=0 -T _temp_files -czf {dest_fn}"
+            print("$ " + cmd)
+            subprocess.check_call(cmd, shell=True)
+            os.unlink('_temp_files')
+            if os.path.getsize(dest_fn) >= 100 * 1024 * 1024:
+                raise Exception(f"{dest_fn} is too big!")
+        cmd = f"rm -rf {year}"
         print("$ " + cmd)
         subprocess.check_call(cmd, shell=True)
 
