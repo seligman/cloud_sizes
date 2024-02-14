@@ -12,7 +12,7 @@ def get_and_parse():
     url = "https://www.microsoft.com/en-us/download/confirmation.aspx?id=56519"
     data = get(url, headers={"User-Agent": "Not a Robot"}).text
 
-    m = re.search('(?P<json>https://download.*?\.json)', data)
+    m = re.search('(?P<json>https://download.*?\\.json)', data)
     url = m.group("json")
     data = get(url, headers={"User-Agent": "Not a Robot"}).json()
 
