@@ -45,6 +45,7 @@ def main():
         "private": private,
     }
     public_ips = internet.size - private.size
+    print(public_ips)
 
     for cur in sorted(os.listdir("helpers")):
         use = cur.endswith(".py")
@@ -57,16 +58,16 @@ def main():
                 spec = spec_from_file_location("ips", os.path.join("helpers", cur))
                 ips = module_from_spec(spec)
                 spec.loader.exec_module(ips)
-                name, pretty, v4, v6, show, raw_data, raw_format, allowed_overlap = ips.get_and_parse()
-                if raw_format == "json":
-                    raw_data = json.dumps(raw_data, separators=(',', ':'))
-                raw_data = gzip.compress(raw_data.encode("utf-8"))
-                print(f"IPv4: {approximate_count(v4):<9} ({v4.size / public_ips * 100:6.4f}%) / IPv6: {approximate_count(v6):<9} / Raw: {len(raw_data):7d}", flush=True)
+                data = ips.get_and_parse()
+                if data['raw_format'] == "json":
+                    data['raw_data'] = json.dumps(data['raw_data'], separators=(',', ':'))
+                data['raw_data'] = gzip.compress(data['raw_data'].encode("utf-8"))
+                print(f"IPv4: {approximate_count(data['v4']):<9} ({data['v4'].size / public_ips * 100:6.4f}%) / IPv6: {approximate_count(data['v6']):<9} / Raw: {len(data['raw_data']):7d}", flush=True)
                 for other, other_v4 in known.items():
-                    overlap = other_v4 & v4
-                    if overlap.size > 0 and other not in allowed_overlap:
+                    overlap = other_v4 & data['v4']
+                    if overlap.size > 0 and other not in data['allowed_overlap']:
                         print(f"WARNING: This overlaps with {other} by {overlap.size} IP addresses")
-                known[name] = v4
+                known[data['name']] = data['v4']
             except Exception as ex:
                 print("FAILED: " + str(ex), flush=True)
 

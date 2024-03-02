@@ -46,7 +46,22 @@ def get_and_parse():
     v4 = IPSet(v4)
     v6 = IPSet(v6)
     
-    return "vultr", "Vultr", v4, v6, True, data, "txt", {}
+    return {
+        "name": "vultr", 
+        "pretty": "Vultr", 
+        "v4": v4, 
+        "v6": v6, 
+        "show": True, 
+        "raw_data": data, 
+        "raw_format": "txt", 
+        "allowed_overlap": {},
+    }
+
+def test():
+    data = get_and_parse()
+    print(f"Results for {data['pretty']}:")
+    print(f"  IPv4: {data['v4'].size:,}")
+    print(f"  IPv6: {data['v6'].size:,}")
 
 if __name__ == "__main__":
-    print("This module is not meant to be run directly")
+    test()

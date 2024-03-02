@@ -11,7 +11,22 @@ def get_and_parse():
     v4 = IPSet([IPNetwork(x["ip_prefix"]) for x in ip_ranges["prefixes"]])
     v6 = IPSet([IPNetwork(x["ipv6_prefix"]) for x in ip_ranges["ipv6_prefixes"]])
 
-    return "aws", "AWS", v4, v6, True, ip_ranges, "json", {"github"}
+    return {
+        "name": "aws", 
+        "pretty": "AWS", 
+        "v4": v4, 
+        "v6": v6, 
+        "show": True, 
+        "raw_data": ip_ranges, 
+        "raw_format": "json", 
+        "allowed_overlap": {"github"},
+    }
+
+def test():
+    data = get_and_parse()
+    print(f"Results for {data['pretty']}:")
+    print(f"  IPv4: {data['v4'].size:,}")
+    print(f"  IPv6: {data['v6'].size:,}")
 
 if __name__ == "__main__":
-    print("This module is not meant to be run directly")
+    test()

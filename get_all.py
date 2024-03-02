@@ -102,14 +102,14 @@ def main():
                 spec = spec_from_file_location("ips", os.path.join("helpers", cur))
                 ips = module_from_spec(spec)
                 spec.loader.exec_module(ips)
-                name, pretty, v4, v6, show, raw_data, raw_format, allowed_overlap = ips.get_and_parse()
-                pretties[name] = [pretty, show]
+                data = ips.get_and_parse()
+                pretties[data['name']] = [data['pretty'], data['show']]
                 # Add a summary to our summary dictionary
-                all_info[name] = [v4.size, v6.size]
+                all_info[data['name']] = [data['v4'].size, data['v6'].size]
 
                 # Read in the old data
                 old_data = "--"
-                dest_name = os.path.join("data", f"data_{name}.json.gz")
+                dest_name = os.path.join("data", f"data_{data['name']}.json.gz")
 
                 old_v4_size = 0
                 if os.path.isfile(dest_name):
@@ -122,10 +122,10 @@ def main():
                 # Create a new view of the data
                 new_data = {
                     'date': "--",
-                    'v4': sorted([str(x) for x in v4.iter_cidrs()]),
-                    'v6': sorted([str(x) for x in v6.iter_cidrs()]),
-                    'v4_size': v4.size,
-                    'v6_size': v6.size,
+                    'v4': sorted([str(x) for x in data['v4'].iter_cidrs()]),
+                    'v6': sorted([str(x) for x in data['v6'].iter_cidrs()]),
+                    'v4_size': data['v4'].size,
+                    'v6_size': data['v6'].size,
                 }
                 new_data = json.dumps(new_data, separators=(',', ':'), sort_keys=True)
 
@@ -135,36 +135,36 @@ def main():
                     with io.TextIOWrapper(gzip.GzipFile(dest_name, "w", 9, mtime=0), newline="") as f:
                         json.dump({
                             'date': run_at,
-                            'v4': sorted([str(x) for x in v4.iter_cidrs()]),
-                            'v6': sorted([str(x) for x in v6.iter_cidrs()]),
-                            'v4_size': v4.size,
-                            'v6_size': v6.size,
+                            'v4': sorted([str(x) for x in data['v4'].iter_cidrs()]),
+                            'v6': sorted([str(x) for x in data['v6'].iter_cidrs()]),
+                            'v4_size': data['v4'].size,
+                            'v6_size': data['v6'].size,
                         }, f, separators=(',', ':'), sort_keys=True)
-                    new_v4_size = v4.size
+                    new_v4_size = data['v4'].size
                     if new_v4_size != old_v4_size and old_v4_size > 0 and new_v4_size > 0:
                         if new_v4_size > old_v4_size:
                             change = f"+{new_v4_size - old_v4_size}"
                         else:
                             change = f"-{old_v4_size - new_v4_size}"
-                        print(f"got {v4.size:>8} IPs, change by {change:>8}", flush=True, end="")
+                        print(f"got {data['v4'].size:>8} IPs, change by {change:>8}", flush=True, end="")
                     else:
-                        print(f"got {v4.size:>8} IPs", flush=True, end="")
+                        print(f"got {data['v4'].size:>8} IPs", flush=True, end="")
                         extra_pad = ' ' * 20
                 else:
-                    print(f"got {v4.size:>8} IPs, no change", flush=True, end="")
+                    print(f"got {data['v4'].size:>8} IPs, no change", flush=True, end="")
                     extra_pad = ' ' * 9
 
                 # Also log out the raw data
                 old_data = b'--'
-                dest_name = os.path.join("data", f"raw_{name}.{raw_format}.gz")
+                dest_name = os.path.join("data", f"raw_{data['name']}.{data['raw_format']}.gz")
                 if os.path.isfile(dest_name):
                     try:
                         with gzip.open(dest_name, "rb") as f:
                             old_data = f.read()
                     except:
                         old_data = b'--'
-                new_data = raw_data
-                if raw_format == "json":
+                new_data = data['raw_data']
+                if data['raw_format'] == "json":
                     new_data = json.dumps(new_data, separators=(',', ':'))
                 new_data = new_data.encode("utf-8")
                 if old_data != new_data:

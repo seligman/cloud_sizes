@@ -15,7 +15,22 @@ def get_and_parse():
     v4 = IPSet([x for x in oracle.iter_cidrs() if x.network.version == 4])
     v6 = IPSet([x for x in oracle.iter_cidrs() if x.network.version == 6])
 
-    return "oracle", "Oracle", v4, v6, True, ip_ranges, "json", {}
+    return {
+        "name": "oracle", 
+        "pretty": "Oracle", 
+        "v4": v4, 
+        "v6": v6, 
+        "show": True, 
+        "raw_data": ip_ranges, 
+        "raw_format": "json", 
+        "allowed_overlap": {},
+    }
+
+def test():
+    data = get_and_parse()
+    print(f"Results for {data['pretty']}:")
+    print(f"  IPv4: {data['v4'].size:,}")
+    print(f"  IPv6: {data['v6'].size:,}")
 
 if __name__ == "__main__":
-    print("This module is not meant to be run directly")
+    test()
