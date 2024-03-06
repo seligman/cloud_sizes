@@ -5,28 +5,6 @@
     <link>https://github.com/seligman/cloud_sizes</link>
     <description>Changes to Cloud IP Ranges</description>
     <item>
-      <title>Cloud IP summary 2024-02-25 00:30:45</title>
-      <link>https://github.com/seligman/cloud_sizes#summary_2024-02-25-00-30-45</link>
-      <description><![CDATA[<pre>Cloud IP Report summary for 2024-02-25 00:30:45
-All values are IPv4 / IPv6
-
-                     Total        --       Change        --       Change %
-aws:            7.87e7 /  1.03e30 --        0 /        0 --      -   /      -  
-azure:          4.05e7 /  1.73e27 --        0 /        0 --      -   /      -  
-cloudflare:     1.52e6 /  1.11e30 --        0 /        0 --      -   /      -  
-digitalocean:   2.88e6 /  3.09e26 --        0 /        0 --      -   /      -  
-facebook:       5.25e5 /  3.17e29 --        0 /        0 --      -   /      -  
-flyio:           84480 /  6.34e29 --        0 /        0 --      -   /      -  
-github:         2.09e7 /  7.13e29 --        0 /        0 --      -   /      -  
-google:         1.29e7 /  8.33e26 --        0 /        0 --      -   /      -  
-hetzner:        2.59e6 /  2.46e30 --        0 /        0 --      -   /      -  
-icloudprov:     1.03e5 /  1.97e29 --        0 /        0 --      -   /      -  
-linode:         8.89e5 /  2.14e30 --        0 /        0 --      -   /      -  
-oracle:         2.46e6 /        0 --        0 /        0 --      -   /  (n/a)  
-vultr:          1.48e6 /  7.87e30 --        0 /        0 --      -   /      -  
-]]></description>
-    </item>
-    <item>
       <title>Cloud IP summary 2024-02-26 00:30:42</title>
       <link>https://github.com/seligman/cloud_sizes#summary_2024-02-26-00-30-42</link>
       <description><![CDATA[<pre>Cloud IP Report summary for 2024-02-26 00:30:42
@@ -222,6 +200,28 @@ icloudprov:     1.03e5 /  1.97e29 --        0 /        0 --      -   /      -
 linode:         8.97e5 /  2.14e30 --        0 /        0 --      -   /      -  
 oracle:         2.46e6 /        0 --        0 /        0 --      -   /  (n/a)  
 vultr:          1.48e6 /  7.87e30 --        0 / -1.21e24 --      -   /   -0.00%
+]]></description>
+    </item>
+    <item>
+      <title>Cloud IP summary 2024-03-06 00:30:43</title>
+      <link>https://github.com/seligman/cloud_sizes#summary_2024-03-06-00-30-43</link>
+      <description><![CDATA[<pre>Cloud IP Report summary for 2024-03-06 00:30:43
+All values are IPv4 / IPv6
+
+                     Total        --       Change        --       Change %
+aws:            7.87e7 /  1.04e30 --        0 / +4.53e23 --      -   /    0.00%
+azure:          4.05e7 /  1.73e27 --        0 /        0 --      -   /      -  
+cloudflare:     1.52e6 /  1.11e30 --        0 /        0 --      -   /      -  
+digitalocean:   2.88e6 /  2.64e21 --        0 /        0 --      -   /      -  
+facebook:       5.25e5 /  3.17e29 --        0 /        0 --      -   /      -  
+flyio:           84480 /  6.34e29 --        0 /        0 --      -   /      -  
+github:         2.09e7 /  7.13e29 --        0 /        0 --      -   /      -  
+google:         1.29e7 /  8.33e26 --        0 /        0 --      -   /      -  
+hetzner:        2.59e6 /  2.46e30 --        0 /        0 --      -   /      -  
+icloudprov:     1.03e5 /  1.97e29 --       +9 /        0 --    0.01% /      -  
+linode:         8.97e5 /  2.14e30 --        0 /        0 --      -   /      -  
+oracle:         2.46e6 /        0 --        0 /        0 --      -   /  (n/a)  
+vultr:          1.48e6 /  7.87e30 --    +1792 / +1.93e25 --    0.12% /    0.00%
 ]]></description>
     </item>
   </channel>
