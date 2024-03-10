@@ -103,6 +103,11 @@ def main():
                 ips = module_from_spec(spec)
                 spec.loader.exec_module(ips)
                 data = ips.get_and_parse()
+
+                # Basic smoke test validation, if no data is found, bail out now
+                if data['v4'].size == 0:
+                    raise Exception("No IPv4 data found!")
+
                 pretties[data['name']] = [data['pretty'], data['show']]
                 # Add a summary to our summary dictionary
                 all_info[data['name']] = [data['v4'].size, data['v6'].size]
