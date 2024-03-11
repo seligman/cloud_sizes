@@ -104,11 +104,12 @@ def main():
                 spec.loader.exec_module(ips)
                 data = ips.get_and_parse()
 
+                pretties[data['name']] = [data['pretty'], data['show']]
+
                 # Basic smoke test validation, if no data is found, bail out now
                 if data['v4'].size == 0:
                     raise Exception("No IPv4 data found!")
 
-                pretties[data['name']] = [data['pretty'], data['show']]
                 # Add a summary to our summary dictionary
                 all_info[data['name']] = [data['v4'].size, data['v6'].size]
 
@@ -180,6 +181,10 @@ def main():
                     print(f",{extra_pad} no change of raw data.", flush=True)
             except Exception as e:
                 print("ERROR: " + str(e))
+                if os.path.isfile(dest_name):
+                    with gzip.open(dest_name) as f:
+                        old_data = json.load(f)
+                        all_info[data['name']] = [old_data.get('v4_size', 0), old_data.get('v6_size', 0)]
 
     # Add the new summary line
     with open(os.path.join("data", "summary.jsonl"), "at", newline="") as f:
