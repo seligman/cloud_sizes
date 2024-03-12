@@ -181,6 +181,7 @@ def main():
                     print(f",{extra_pad} no change of raw data.", flush=True)
             except Exception as e:
                 print("ERROR: " + str(e))
+                dest_name = os.path.join("data", f"data_{data['name']}.json.gz")
                 if os.path.isfile(dest_name):
                     with gzip.open(dest_name) as f:
                         old_data = json.load(f)
