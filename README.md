@@ -17,6 +17,8 @@ Over time, each item's day to day change in percent:
 ![azure](images/history_azure.png)<br>
 ![cloudflare](images/history_cloudflare.png)<br>
 ![digitalocean](images/history_digitalocean.png)<br>
+![facebook](images/history_facebook.png)<br>
+![flyio](images/history_flyio.png)<br>
 ![google](images/history_google.png)<br>
 ![github](images/history_github.png)<br>
 ![hetzner](images/history_hetzner.png)<br>
