@@ -99,10 +99,15 @@ def main():
         if cur.endswith(".py"):
             print(f"Working on {cur:<16} ", end="", flush=True)
             try:
+                data = {"name": cur[:-3]}
+
                 spec = spec_from_file_location("ips", os.path.join("helpers", cur))
                 ips = module_from_spec(spec)
                 spec.loader.exec_module(ips)
-                data = ips.get_and_parse()
+                temp = ips.get_and_parse()
+                if not isinstance(temp, dict) or 'name' not in temp:
+                    raise Exception("Invalid return")
+                data = temp
 
                 pretties[data['name']] = [data['pretty'], data['show']]
 
