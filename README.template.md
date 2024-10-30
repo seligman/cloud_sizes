@@ -7,7 +7,7 @@ To get a daily update of the counts:
 
 [![RSS Icon](images/rss_badge.svg)](https://raw.githubusercontent.com/seligman/cloud_sizes/master/rss.xml)
 
-Currently, they providers have this many IPv4 addresses, shown with a logarithmic scale:
+Currently, the providers have this many IPv4 addresses, shown here with a logarithmic scale:
 
 ![Compared](images/main.png)
 
