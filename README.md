@@ -7,14 +7,13 @@ To get a daily update of the counts:
 
 [![RSS Icon](images/rss_badge.svg)](https://raw.githubusercontent.com/seligman/cloud_sizes/master/rss.xml)
 
-Currently, they providers have this many IPv4 addresses, shown with a logarithmic scale:
+Currently, the providers have this many IPv4 addresses, shown here with a logarithmic scale:
 
 ![Compared](images/main.png)
 
 Over time, each item's day to day change in percent:
 
 ![aws](images/history_aws.png)<br>
-![azure](images/history_azure.png)<br>
 ![cloudflare](images/history_cloudflare.png)<br>
 ![digitalocean](images/history_digitalocean.png)<br>
 ![facebook](images/history_facebook.png)<br>
