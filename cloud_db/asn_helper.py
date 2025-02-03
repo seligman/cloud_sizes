@@ -9,7 +9,7 @@ import os
 def download(url, fn, desc=None):
     print(f"Downloading '{fn if desc is None else desc}'...")
     with open(fn, "wb") as f:
-        req = Request(url, headers={"User-Agent": "Cloud-IPs"})
+        req = Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"})
         resp = urlopen(req)
         while True:
             bits = resp.read(131072)
