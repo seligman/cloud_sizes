@@ -121,7 +121,7 @@ def add_aws(stats, targets, sources, short_name, long_name):
     for cur in data["prefixes"] + data["ipv6_prefixes"]:
         stats["ranges"] += 1
         prefix = cur.get("ip_prefix", cur.get("ipv6_prefix"))
-        add_data(short_name, targets, prefix, cur["service"], cur["region"])
+        add_data(short_name, targets, prefix, cur["service"], cur.get("network_border_group", cur["region"]))
 
 def add_google(stats, targets, sources, short_name, long_name):
     # Add all Google ranges to our current working set

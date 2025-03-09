@@ -18,10 +18,11 @@ else: import datetime as datetime_fix; UTC=datetime_fix.timezone.utc
 
 # The URL of the data file
 CLOUD_URL = "https://cloud-ips.s3-us-west-2.amazonaws.com/cloud_db.dat"
+# Filename to use if it exists
+LOCAL_FILENAME = os.path.join("data", "cloud_db.dat")
 
 # Helper to download a copy of the database and save a local cached copy
-def read_cache_local():
-    fn = "lookup_ip_address.dat"
+def read_cache_local(fn):
     # If the local copy is older than two weeks, pull down a fresh copy
     max_age = (datetime.now(UTC).replace(tzinfo=None) - timedelta(days=14)).strftime("%Y-%m-%d %H:%M:%S")
 
@@ -196,12 +197,18 @@ def lookup_ip(db_file, ip):
             ret.append(item_dict)
         return ret
 
+def get_data_file():
+    if os.path.isfile(LOCAL_FILENAME):
+        return read_cache_local(LOCAL_FILENAME)
+    else:
+        return read_cache_remote()
+
 def main():
     if len(sys.argv) == 1:
         print("Need to specify one or more IPs to lookup")
         exit(1)
 
-    with read_cache_remote() as f:
+    with get_data_file() as f:
         # Show the build date of the database
         info = lookup_ip(f, "info")
         print(json.dumps({"info": f"Database last built {info['built']}"}))
