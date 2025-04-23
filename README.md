@@ -23,7 +23,6 @@ Over time, each item's day to day change in percent:
 ![github](images/history_github.png)<br>
 ![hetzner](images/history_hetzner.png)<br>
 ![icloudprov](images/history_icloudprov.png)<br>
-![linode](images/history_linode.png)<br>
 ![oracle](images/history_oracle.png)<br>
 ![vultr](images/history_vultr.png)<br>
 
