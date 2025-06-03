@@ -115,9 +115,9 @@ def process_json_data(data: dict, mimir_url: str, username: str, password: str,
                     # Send metric to Mimir
                     send_to_mimir(
                         timestamp=timestamp,
-                        provider=ipv6_count,
+                        provider=provider,
                         type="v6",
-                        value=ipv4_count,
+                        value=ipv6_count,
                         mimir_url=f"{mimir_url}/api/v1/push",
                         auth=(username, password)
                     )
