@@ -104,8 +104,7 @@ def process_json_data(data: dict, mimir_url: str, username: str, password: str,
                     print(f"Successfully sent metric for {provider}: {ipv4_count}")
 
                 except Exception as e:
-                    error_msg = f"Error at line {line_number}: {str(e)}" if line_number else f"Error sending metric: {str(e)}"
-                    print(error_msg)
+                    print(f"Error at line {line_number}: {str(e)}" if line_number else f"Error sending metric: {str(e)}")
 
                 # Add a small delay to avoid overwhelming the server
                 time.sleep(0.1)
@@ -124,8 +123,7 @@ def process_json_data(data: dict, mimir_url: str, username: str, password: str,
                     print(f"Successfully sent metric for {provider}: {ipv4_count}")
 
                 except Exception as e:
-                    error_msg = f"Error at line {line_number}: {str(e)}" if line_number else f"Error sending metric: {str(e)}"
-                    print(error_msg)
+                    print(f"Error at line {line_number}: {str(e)}" if line_number else f"Error sending metric: {str(e)}")
 
 
                 # Add a small delay to avoid overwhelming the server
