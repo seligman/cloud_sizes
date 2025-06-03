@@ -84,6 +84,45 @@ def create_summary():
         f.write('  </channel>\n')
         f.write('</rss>\n')
 
+def get_data():
+    run_at = datetime.now(UTC).replace(tzinfo=None).strftime("%Y-%m-%d %H:%M:%S")
+    all_info = {
+        '_': run_at,
+    }
+
+    # What the different services are properly called
+    pretties = {}
+
+    # Loop for each file in the helpers dir, and let it doe the work for its provider
+    for cur in sorted(os.listdir("helpers")):
+        if cur.endswith(".py"):
+            print(f"Working on {cur:<16} ", end="", flush=True)
+            try:
+                spec = spec_from_file_location("ips", os.path.join("helpers", cur))
+                ips = module_from_spec(spec)
+                spec.loader.exec_module(ips)
+                temp = ips.get_and_parse()
+                if not isinstance(temp, dict) or 'name' not in temp:
+                    raise Exception("Invalid return")
+                data = temp
+
+                pretties[data['name']] = [data['pretty'], data['show']]
+
+                # Basic smoke test validation, if no data is found, bail out now
+                if data['v4'].size == 0:
+                    raise Exception("No IPv4 data found!")
+
+                # Add a summary to our summary dictionary
+                all_info[data['name']] = [data['v4'].size, data['v6'].size]
+            except Exception as e:
+                print("ERROR: " + str(e))
+                dest_name = os.path.join("data", f"data_{data['name']}.json.gz")
+                if os.path.isfile(dest_name):
+                    with gzip.open(dest_name) as f:
+                        old_data = json.load(f)
+                        all_info[data['name']] = [old_data.get('v4_size', 0), old_data.get('v6_size', 0)]
+    return all_info
+
 def main():
     # A summary of this run
     run_at = datetime.now(UTC).replace(tzinfo=None).strftime("%Y-%m-%d %H:%M:%S")
