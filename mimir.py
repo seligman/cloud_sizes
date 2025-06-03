@@ -173,6 +173,7 @@ def process_all_lines(file_path: Path, mimir_url: str, username: str, password: 
     except Exception as e:
         print(f"Error reading file: {e}")
         sys.exit(1)
+
 def process_last_line(file_path: Path, mimir_url: str, username: str, password: str) -> None:
     """
     Process only the last line of the JSONL file and send metrics to Mimir
@@ -233,13 +234,17 @@ def main():
     USERNAME = os.getenv("MIMIR_USERNAME")
     PASSWORD = os.getenv("MIMIR_PASSWORD")
     FILE_PATH = Path("data/summary.jsonl")
+    FULL = os.getenv("FULL_EXPORT")
 
     if not FILE_PATH.exists():
         print(f"Error: File not found at {FILE_PATH}")
         sys.exit(1)
 
     print(f"Starting to process {FILE_PATH}")
-    process_all_lines(FILE_PATH, MIMIR_URL, USERNAME, PASSWORD)
+    if FULL:
+        process_all_lines(FILE_PATH, MIMIR_URL, USERNAME, PASSWORD)
+    else:
+        process_last_line(FILE_PATH, MIMIR_URL, USERNAME, PASSWORD)
     print("Processing complete")
 
 
