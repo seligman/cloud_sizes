@@ -153,7 +153,27 @@ def process_file(file_path: Path, mimir_url: str, username: str, password: str) 
             except Exception as e:
                 sys.exit(1)  # Error message already printed in process_json_data
 
+def process_all_lines(file_path: Path, mimir_url: str, username: str, password: str) -> None:
+    """
+    Process only the last line of the JSONL file and send metrics to Mimir
+    Stops processing if any error occurs
+    """
+    try:
+        # Read the last line of the file
+        with open(file_path, 'r') as f:
 
+          for l in f.readlines():
+            try:
+                data = json.loads(l)
+                process_json_data(data, mimir_url, username, password)
+            except json.JSONDecodeError as e:
+                print(f"Error parsing JSON in last line: {e}")
+            except Exception as e:
+                pass
+
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        sys.exit(1)
 def process_last_line(file_path: Path, mimir_url: str, username: str, password: str) -> None:
     """
     Process only the last line of the JSONL file and send metrics to Mimir
