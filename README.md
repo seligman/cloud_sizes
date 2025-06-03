@@ -43,3 +43,14 @@ protoc prometheus.proto --python_out=.
 python get_all.py
 protoc prometheus.proto --python_out=.python mimir.py 
 ~~~
+
+### Export to mimir
+
+To run and export data:ds
+
+~~~shell
+source venv/bin/activate
+protoc prometheus.proto --python_out=.
+python get_all.py
+protoc prometheus.proto --python_out=.python mimir.py 
+~~~
