@@ -48,7 +48,7 @@ def get_and_parse():
 
     return {
         "name": "ovhcloud",
-        "pretty": "OVHCloud",
+        "pretty": "OVHcloud",
         "v4": v4, 
         "v6": v6, 
         "show": True, 
