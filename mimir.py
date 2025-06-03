@@ -1,5 +1,6 @@
 import calendar
 import json
+import os
 import sys
 import time
 from datetime import datetime
@@ -230,9 +231,9 @@ def find_last_line(f):
 
 def main():
     # Configuration
-    MIMIR_URL = "http://your-mimir-instance:9009"  # Replace with your Mimir URL
-    USERNAME = "your-username"
-    PASSWORD = "your-password"
+    MIMIR_URL = os.getenv("MIMIR_URL")  # Replace with your Mimir URL
+    USERNAME = os.getenv("MIMIR_USERNAME")
+    PASSWORD = os.getenv("MIMIR_PASSWORD")
     FILE_PATH = Path("data/summary.jsonl")
 
     if not FILE_PATH.exists():
@@ -240,7 +241,7 @@ def main():
         sys.exit(1)
 
     print(f"Starting to process {FILE_PATH}")
-    process_last_line(FILE_PATH, MIMIR_URL, USERNAME, PASSWORD)
+    process_all_lines(FILE_PATH, MIMIR_URL, USERNAME, PASSWORD)
     print("Processing complete")
 
 
