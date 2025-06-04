@@ -2,13 +2,6 @@ name: Build and Push Docker Image
 
 on:
   workflow_dispatch:
-    inputs:
-      docker_username:
-        description: 'Docker Hub Username'
-        required: true
-      docker_repository:
-        description: 'Docker Repository Name'
-        required: true
 
 jobs:
   build-and-push:
