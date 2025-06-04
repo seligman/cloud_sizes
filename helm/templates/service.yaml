@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "cloud_sizes_exporter.fullname" . }}
+  name: {{ include "cloud-sizes-exporter.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "cloud_sizes_exporter.name" . }}
-    helm.sh/chart: {{ include "cloud_sizes_exporter.chart" . }}
+    app.kubernetes.io/name: {{ include "cloud-sizes-exporter.name" . }}
+    helm.sh/chart: {{ include "cloud-sizes-exporter.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
@@ -15,5 +15,5 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app.kubernetes.io/name: {{ include "cloud_sizes_exporter.name" . }}
+    app.kubernetes.io/name: {{ include "cloud-sizes-exporter.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
