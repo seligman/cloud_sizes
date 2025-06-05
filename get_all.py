@@ -133,7 +133,7 @@ def main():
     # What the different services are properly called
     pretties = {}
 
-    # Loop for each file in the helpers dir, and let it doe the work for its provider
+    # Loop for each file in the helpers dir, and let it does the work for its provider
     for cur in sorted(os.listdir("helpers")):
         if cur.endswith(".py"):
             print(f"Working on {cur:<16} ", end="", flush=True)
