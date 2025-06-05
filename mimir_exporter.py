@@ -1,3 +1,4 @@
+import os
 import time
 
 from prometheus_client import start_http_server, Gauge
@@ -21,6 +22,17 @@ def export_data():
 if __name__ == '__main__':
     # Start up the server to expose the metrics.
     start_http_server(9800)
+    # Get the environment variable, default to '3600' if not defined
+    sleep_duration_str = os.getenv('SLEEP_DURATION', '3600')
+    # Convert the environment variable to an integer
+    try:
+        sleep_duration = int(sleep_duration_str)
+    except ValueError:
+        # If conversion fails, default to 3600
+        sleep_duration = 3600
+    # Ensure the sleep duration is not less than 3600
+    if sleep_duration < 3600:
+        sleep_duration = 3600
     while True:
         export_data()
-        time.sleep(300)  # Sleep for 5 minutes
+        time.sleep(sleep_duration)  # Sleep for 1h minutes
