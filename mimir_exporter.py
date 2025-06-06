@@ -10,14 +10,17 @@ cloud_provider_ips_pool_size = Gauge('cloud_provider_ips_pool_size', 'Size of IP
 
 def export_data():
     # Fetch data
-    data = get_data()
+    try:
+        data = get_data()
 
-    # Process and export data
-    for provider, sizes in data.items():
-        if provider != '_':  # Skip the timestamp entry
-            v4_size, v6_size = sizes
-            cloud_provider_ips_pool_size.labels(name=provider, type='IPv4').set(v4_size)
-            cloud_provider_ips_pool_size.labels(name=provider, type='IPv6').set(v6_size)
+        # Process and export data
+        for provider, sizes in data.items():
+            if provider != '_':  # Skip the timestamp entry
+                v4_size, v6_size = sizes
+                cloud_provider_ips_pool_size.labels(name=provider, type='IPv4').set(v4_size)
+                cloud_provider_ips_pool_size.labels(name=provider, type='IPv6').set(v6_size)
+    except Exception:
+        print("Issue while fetching data")
 
 if __name__ == '__main__':
     # Start up the server to expose the metrics.
