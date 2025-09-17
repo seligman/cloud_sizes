@@ -19,24 +19,14 @@ An IP map of the big providers, in the style of [XKCD's map of the Internet](htt
 
 ![map](images/map.png)
 
-### Export to mimir
-
-To run and export data:ds
+### Remote write to Mimir
 
 ~~~shell
 source venv/bin/activate
 protoc prometheus.proto --python_out=.
-python get_all.py
-protoc prometheus.proto --python_out=.python mimir.py 
-~~~
-
-### Export to mimir
-
-To run and export data:ds
-
-~~~shell
-source venv/bin/activate
-protoc prometheus.proto --python_out=.
-python get_all.py
-protoc prometheus.proto --python_out=.python mimir.py 
+export MIMIR_URL=""
+export MIMIR_USERNAME=""
+export MIMIR_PASSWORD=""
+export FULL_EXPORT=false #true
+python mimir_remote_writer.py 
 ~~~
