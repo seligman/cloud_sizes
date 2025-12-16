@@ -24,6 +24,7 @@ Over time, each item's day to day change in percent:
 ![hetzner](images/history_hetzner.png)<br>
 ![icloudprov](images/history_icloudprov.png)<br>
 ![linode](images/history_linode.png)<br>
+![openai](images/history_openai.png)<br>
 ![oracle](images/history_oracle.png)<br>
 ![ovhcloud](images/history_ovhcloud.png)<br>
 ![vultr](images/history_vultr.png)<br>
