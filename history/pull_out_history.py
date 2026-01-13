@@ -31,7 +31,7 @@ def process_raw_history():
     for row in log.split("\n"):
         commit, at = row.split(' ')
         at = epoch + timedelta(seconds=int(at))
-        if os.path.isfile(str(at.year) + ".tar.gz"):
+        if os.path.isfile(str(at.year) + ".tar.gz") or os.path.isfile(str(at.year) + "_01.tar.gz"):
             break
         data = subprocess.check_output(["git", "diff-tree", "--no-commit-id", "-r", commit]).decode("utf-8")
         for file in data.split("\n"):
