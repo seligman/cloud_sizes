@@ -1,5 +1,6 @@
 import calendar
 import json
+import os
 import sys
 import time
 from datetime import datetime
@@ -103,9 +104,7 @@ def process_json_data(data: dict, mimir_url: str, username: str, password: str,
                     print(f"Successfully sent metric for {provider}: {ipv4_count}")
 
                 except Exception as e:
-                    error_msg = f"Error at line {line_number}: {str(e)}" if line_number else f"Error sending metric: {str(e)}"
-                    print(error_msg)
-                    raise
+                    print(f"Error at line {line_number}: {str(e)}" if line_number else f"Error sending metric: {str(e)}")
 
                 # Add a small delay to avoid overwhelming the server
                 time.sleep(0.1)
@@ -115,18 +114,17 @@ def process_json_data(data: dict, mimir_url: str, username: str, password: str,
                     # Send metric to Mimir
                     send_to_mimir(
                         timestamp=timestamp,
-                        provider=ipv6_count,
+                        provider=provider,
                         type="v6",
-                        value=ipv4_count,
+                        value=ipv6_count,
                         mimir_url=f"{mimir_url}/api/v1/push",
                         auth=(username, password)
                     )
                     print(f"Successfully sent metric for {provider}: {ipv4_count}")
 
                 except Exception as e:
-                    error_msg = f"Error at line {line_number}: {str(e)}" if line_number else f"Error sending metric: {str(e)}"
-                    print(error_msg)
-                    raise
+                    print(f"Error at line {line_number}: {str(e)}" if line_number else f"Error sending metric: {str(e)}")
+
 
                 # Add a small delay to avoid overwhelming the server
                 time.sleep(0.1)
@@ -154,6 +152,27 @@ def process_file(file_path: Path, mimir_url: str, username: str, password: str) 
             except Exception as e:
                 sys.exit(1)  # Error message already printed in process_json_data
 
+def process_all_lines(file_path: Path, mimir_url: str, username: str, password: str) -> None:
+    """
+    Process only the last line of the JSONL file and send metrics to Mimir
+    Stops processing if any error occurs
+    """
+    try:
+        # Read the last line of the file
+        with open(file_path, 'r') as f:
+
+          for l in f.readlines():
+            try:
+                data = json.loads(l)
+                process_json_data(data, mimir_url, username, password)
+            except json.JSONDecodeError as e:
+                print(f"Error parsing JSON in last line: {e}")
+            except Exception as e:
+                pass
+
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        sys.exit(1)
 
 def process_last_line(file_path: Path, mimir_url: str, username: str, password: str) -> None:
     """
@@ -211,17 +230,21 @@ def find_last_line(f):
 
 def main():
     # Configuration
-    MIMIR_URL = "http://your-mimir-instance:9009"  # Replace with your Mimir URL
-    USERNAME = "your-username"
-    PASSWORD = "your-password"
+    MIMIR_URL = os.getenv("MIMIR_URL")  # Replace with your Mimir URL
+    USERNAME = os.getenv("MIMIR_USERNAME")
+    PASSWORD = os.getenv("MIMIR_PASSWORD")
     FILE_PATH = Path("data/summary.jsonl")
+    FULL = os.getenv("FULL_EXPORT")
 
     if not FILE_PATH.exists():
         print(f"Error: File not found at {FILE_PATH}")
         sys.exit(1)
 
     print(f"Starting to process {FILE_PATH}")
-    process_last_line(FILE_PATH, MIMIR_URL, USERNAME, PASSWORD)
+    if FULL:
+        process_all_lines(FILE_PATH, MIMIR_URL, USERNAME, PASSWORD)
+    else:
+        process_last_line(FILE_PATH, MIMIR_URL, USERNAME, PASSWORD)
     print("Processing complete")
 
 
