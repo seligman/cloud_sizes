@@ -20,7 +20,6 @@ Over time, each item's day to day change in percent:
 ![facebook](images/history_facebook.png)<br>
 ![flyio](images/history_flyio.png)<br>
 ![google](images/history_google.png)<br>
-![github](images/history_github.png)<br>
 ![hetzner](images/history_hetzner.png)<br>
 ![icloudprov](images/history_icloudprov.png)<br>
 ![linode](images/history_linode.png)<br>
